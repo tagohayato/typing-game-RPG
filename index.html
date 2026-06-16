@@ -664,30 +664,27 @@ function onComplete(){
   animSprite("enemy-sprite");romanBuf="";kanaPos=0;
   // ワード完成でタイマーリセット
   timerStart=performance.now();timerElapsed=0;
-  // 経験値獲得（ステージ番号に応じて増加）
-  const expGain = 10 + state.stage * 5;
-  addExp(expGain);
   const maxHp=calcMaxHp(hero.lv);
   if(state.combo>=COMBO_REQ){
     state.playerHp=Math.min(maxHp,state.playerHp+COMBO_HEAL);
     $("combo-msg").textContent=`${state.combo}コンボ！ HP +${COMBO_HEAL}`;
-    setMsg(`撃破！ -${dmg} / +${expGain}EXP / コンボ回復！`,"good");sndCombo();
+    setMsg(`撃破！ -${dmg} / コンボ回復！`,"good");sndCombo();
   } else {
     $("combo-msg").textContent=state.combo>1?`${state.combo}コンボ！`:"";
-    setMsg(`撃破！ -${dmg} ダメージ / +${expGain}EXP`,"good");sndAttack();
+    setMsg(`撃破！ -${dmg} ダメージ`,"good");sndAttack();
   }
   renderHp();
   if(state.enemyHp<=0){
     state.done=true;stopTimer();
-    // ステージクリアボーナス経験値
-    const bonusExp = 50 + state.stage * 30;
-    addExp(bonusExp);
+    // 敵撃破時のみ経験値獲得（ステージが深いほど多め）
+    const expGain = 50 + state.stage * 30;
+    addExp(expGain);
     if(state.stage+1>=STAGES.length){
       sndClear();stopBGM();bgmPlaying=false;$("bgm-btn").textContent="🔇";
-      showOverlay("🎉 全ステージクリア！",`魔王ダークロスを打ち倒し\n世界に真の平和が訪れた！\nクリアボーナス +${bonusExp}EXP`,"最初から遊ぶ");
+      showOverlay("🎉 全ステージクリア！",`魔王ダークロスを打ち倒し\n世界に真の平和が訪れた！\n+${expGain}EXP 獲得！`,"最初から遊ぶ");
     } else {
       sndDefeat();
-      showOverlay(`ステージ ${state.stage+1} クリア！`,`次の強敵： ${STAGES[state.stage+1].name}\nクリアボーナス +${bonusExp}EXP`,"次のステージへ");
+      showOverlay(`ステージ ${state.stage+1} クリア！`,`次の強敵： ${STAGES[state.stage+1].name}\n+${expGain}EXP 獲得！`,"次のステージへ");
     }
     return;
   }
