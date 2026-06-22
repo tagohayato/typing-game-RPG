@@ -1,59 +1,347 @@
+
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"></head><body>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap');
+
+:root {
+  --bg:       #0a0a1a;
+  --panel:    #12122a;
+  --border:   #4a4a8a;
+  --accent:   #6868d4;
+  --gold:     #f0c040;
+  --green:    #40d060;
+  --red:      #e04040;
+  --orange:   #f08020;
+  --white:    #e8e8f8;
+  --gray:     #6868a8;
+  --darkgray: #2a2a4a;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: transparent; }
-#game { padding: 1rem 0; user-select: none; font-family: sans-serif; }
-.stage-banner { text-align: center; font-size: 13px; color: #888; margin-bottom: 8px; position: relative; }
-.battle-area { background: #f5f5f5; border: 0.5px solid #ddd; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
-.fighters { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 1rem; }
-.fighter { flex: 1; }
-.fighter-name { font-size: 13px; font-weight: 500; color: #666; margin-bottom: 4px; }
-.hp-bar-bg { height: 10px; background: #e0e0e0; border-radius: 999px; overflow: hidden; }
-.hp-bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
-.hp-label { font-size: 11px; color: #aaa; margin-top: 3px; text-align: right; }
-.player-hp .hp-bar-fill { background: #1D9E75; }
-.enemy-hp .hp-bar-fill { background: #E24B4A; }
-.enemy-hp .hp-label { text-align: left; }
-.sprite-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem; }
-.sprite { font-size: 42px; line-height: 1; transition: transform 0.1s; }
-.combo-badge { text-align: center; font-size: 12px; font-weight: 500; min-height: 18px; color: #0F6E56; }
-.word-display { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1.25rem; margin-bottom: 6px; text-align: center; }
-.word-kanji { font-size: 22px; font-weight: 500; color: #111; margin-bottom: 4px; }
-.word-kana-small { font-size: 13px; color: #888; margin-bottom: 8px; }
-.kana-display { font-size: 20px; letter-spacing: 0.12em; margin-bottom: 6px; min-height: 30px; }
-.roman-display { font-family: monospace; font-size: 18px; letter-spacing: 0.06em; min-height: 28px; word-break: break-all; }
-.kana-done { color: #1D9E75; }
-.kana-cur { color: #111; font-weight: 600; border-bottom: 2.5px solid #378ADD; }
-.kana-pending { color: #bbb; }
-.seg-done { color: #1D9E75; }
-.seg-cur { color: #111; border-bottom: 2.5px solid #E24B4A; }
-.seg-pending { color: #bbb; }
-.msg-bar { min-height: 20px; font-size: 13px; color: #888; text-align: center; margin-bottom: 4px; }
-.msg-bar.good { color: #0F6E56; }
-.msg-bar.bad { color: #A32D2D; }
-.overlay { position: absolute; top:0;left:0;right:0;bottom:0; background: rgba(0,0,0,0.65); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 1.5rem; }
-.overlay-title { font-size: 26px; font-weight: 600; color: #fff; }
-.overlay-sub { font-size: 14px; color: rgba(255,255,255,0.85); text-align: center; line-height: 1.7; white-space: pre-line; }
-.overlay button { padding: 9px 32px; background: #fff; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; color: #111; font-weight: 500; }
-.game-wrap { position: relative; }
-.diff-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
-.bgm-btn { font-size: 18px; background: none; border: none; cursor: pointer; opacity: 0.6; vertical-align: middle; margin-left: 6px; }
-.bgm-btn:hover { opacity: 1; }
-.timer-wrap { margin: 0 0 8px 0; }
-.timer-label { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 3px; }
-.timer-bar-bg { height: 8px; background: #e0e0e0; border-radius: 999px; overflow: hidden; }
-.timer-bar-fill { height: 100%; border-radius: 999px; background: #E24B4A; transition: width 0.1s linear; }
-.timer-bar-fill.warn { background: #E27A1D; }
-.timer-bar-fill.safe { background: #1D9E75; }
-.hero-status { display: flex; align-items: center; gap: 10px; background: #f5f5f5; border: 0.5px solid #ddd; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; }
-.hero-lv { font-size: 13px; font-weight: 700; color: #C07840; white-space: nowrap; }
+html, body {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+}
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ドット風ボーダー：擬似的に太い2px solid + inset shadow で "枠" 感を出す */
+.dot-box {
+  border: 3px solid var(--border);
+  box-shadow: inset 0 0 0 1px var(--accent), 3px 3px 0 #000;
+  background: var(--panel);
+  image-rendering: pixelated;
+}
+
+#game {
+  padding: 0.75rem 0;
+  user-select: none;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--white);
+  border-radius: 4px;
+  padding: 28px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ステージバナー */
+.stage-banner {
+  text-align: center;
+  font-size: 13px;
+  color: var(--gold);
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* 勇者ステータス */
+.hero-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.hero-lv {
+  font-size: 13px;
+  color: var(--gold);
+  white-space: nowrap;
+  text-shadow: 1px 1px 0 #000;
+}
 .exp-wrap { flex: 1; }
-.exp-label { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-bottom: 2px; }
-.exp-bar-bg { height: 6px; background: #e0e0e0; border-radius: 999px; overflow: hidden; }
-.exp-bar-fill { height: 100%; border-radius: 999px; background: #C07840; transition: width 0.4s ease; }
-.levelup-flash { animation: lvflash 0.6s ease; }
-@keyframes lvflash { 0%{background:#fff7e0} 50%{background:#ffe080} 100%{background:#f5f5f5} }
+.exp-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+.exp-bar-bg {
+  height: 11px;
+  background: var(--darkgray);
+  border: 2px solid var(--border);
+  overflow: hidden;
+}
+.exp-bar-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.4s steps(20);
+}
+.stat-item {
+  font-size: 10px;
+  color: var(--gray);
+  white-space: nowrap;
+}
+.stat-item span { color: var(--white); }
+.reset-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--gray);
+  background: none;
+  border: 1px solid var(--border);
+  padding: 4px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.reset-btn:hover { color: var(--red); border-color: var(--red); }
+
+/* バトルエリア */
+.battle-area {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.fighters {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.fighter { flex: 1; }
+.fighter-name {
+  font-size: 13px;
+  color: var(--gray);
+  margin-bottom: 6px;
+  text-shadow: 1px 1px 0 #000;
+  font-family: 'DotGothic16', monospace;
+}
+.hp-bar-bg {
+  height: 14px;
+  background: var(--darkgray);
+  border: 2px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 3px;
+}
+.hp-bar-fill {
+  height: 100%;
+  transition: width 0.3s steps(10);
+}
+.hp-label {
+  font-size: 10px;
+  color: var(--gray);
+  text-align: right;
+}
+.player-hp .hp-bar-fill { background: var(--green); }
+.enemy-hp .hp-bar-fill { background: var(--red); }
+.enemy-hp .hp-label { text-align: left; }
+
+/* スプライト行 */
+.sprite-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 10px;
+  min-height: 112px;
+}
+.sprite {
+  width: 112px;
+  height: 112px;
+  line-height: 1;
+  transition: transform 0.1s steps(2);
+  image-rendering: pixelated;
+  filter: drop-shadow(3px 3px 0 #000);
+}
+.sprite svg { width: 100%; height: 100%; image-rendering: pixelated; shape-rendering: crispEdges; }
+
+/* コンボ */
+.combo-badge {
+  text-align: center;
+  font-size: 12px;
+  min-height: 22px;
+  color: var(--gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* タイマー */
+.timer-wrap { margin-bottom: 12px; }
+.timer-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+.timer-bar-bg {
+  height: 14px;
+  background: var(--darkgray);
+  border: 2px solid var(--border);
+  overflow: hidden;
+}
+.timer-bar-fill {
+  height: 100%;
+  transition: width 0.1s linear;
+}
+.timer-bar-fill.safe    { background: var(--green); }
+.timer-bar-fill.warn    { background: var(--orange); }
+.timer-bar-fill.danger  { background: var(--red); }
+
+/* 単語表示 */
+.word-display {
+  padding: 18px 14px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.word-kanji {
+  font-size: 30px;
+  color: var(--white);
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 0 #000;
+  font-family: 'DotGothic16', monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.word-kana-small {
+  font-size: 13px;
+  color: var(--gray);
+  margin-bottom: 14px;
+  font-family: 'DotGothic16', monospace;
+}
+.kana-display {
+  font-size: 24px;
+  letter-spacing: 0.15em;
+  margin-bottom: 12px;
+  min-height: 32px;
+  font-family: 'DotGothic16', monospace;
+}
+.roman-display {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  min-height: 28px;
+  word-break: break-all;
+  line-height: 1.8;
+}
+.kana-done  { color: var(--green); }
+.kana-cur   { color: var(--white); font-weight: 700; border-bottom: 4px solid var(--accent); }
+.kana-pending { color: #444468; }
+.seg-done   { color: var(--green); }
+.seg-cur    { color: var(--white); border-bottom: 4px solid var(--gold); }
+.seg-pending { color: #444468; }
+
+/* メッセージ */
+.msg-bar {
+  min-height: 24px;
+  font-size: 13px;
+  color: var(--gray);
+  text-align: center;
+  margin-bottom: 6px;
+  text-shadow: 1px 1px 0 #000;
+  font-family: 'DotGothic16', monospace;
+}
+.msg-bar.good { color: var(--green); }
+.msg-bar.bad  { color: var(--red); }
+
+/* オーバーレイ */
+.overlay {
+  position: absolute;
+  top:0;left:0;right:0;bottom:0;
+  background: rgba(0,0,5,0.85);
+  border: 4px solid var(--gold);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 2rem;
+}
+.overlay-title {
+  font-size: 20px;
+  color: var(--gold);
+  text-shadow: 2px 2px 0 #000;
+  text-align: center;
+  line-height: 1.6;
+}
+.overlay-sub {
+  font-size: 15px;
+  color: var(--white);
+  text-align: center;
+  line-height: 2.2;
+  white-space: pre-line;
+  text-shadow: 1px 1px 0 #000;
+  font-family: 'DotGothic16', monospace;
+}
+.overlay button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  color: var(--bg);
+  background: var(--gold);
+  border: 4px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: transform 0.05s, box-shadow 0.05s;
+}
+.overlay button:active {
+  transform: translate(2px,2px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+/* diff バッジ */
+.diff-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 3px 8px;
+  border: 1px solid;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* BGMボタン */
+.bgm-btn {
+  font-size: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+.bgm-btn:hover { opacity: 1; }
+
+/* レベルアップフラッシュ */
+.levelup-flash { animation: lvflash 0.7s steps(4); }
+@keyframes lvflash {
+  0%  { background: var(--panel); }
+  25% { background: #2a2a10; }
+  50% { background: #3a3a05; }
+  75% { background: #2a2a10; }
+  100%{ background: var(--panel); }
+}
+
+.game-wrap { position: relative; }
+
+/* ブリンクカーソル風 */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.seg-cur { animation: blink 0.8s steps(1) infinite; }
 </style>
 
 <div id="game">
@@ -61,21 +349,21 @@ body { background: transparent; }
     <span id="stage-label">ステージ 1 / 8</span>
     <button class="bgm-btn" id="bgm-btn">🔇</button>
   </div>
-  <div class="hero-status" id="hero-status">
+  <div class="hero-status dot-box" id="hero-status">
     <div class="hero-lv" id="hero-lv">Lv.1</div>
     <div class="exp-wrap">
       <div class="exp-label"><span>EXP</span><span id="exp-label-right">0 / 100</span></div>
       <div class="exp-bar-bg"><div class="exp-bar-fill" id="exp-bar" style="width:0%"></div></div>
     </div>
-    <div style="font-size:11px;color:#aaa;white-space:nowrap">最大HP <span id="hero-maxhp-label">120</span></div>
-    <div style="font-size:11px;color:#aaa;white-space:nowrap">ATK <span id="hero-atk-label">5</span></div>
-    <button onclick="resetHeroData()" style="font-size:10px;color:#aaa;background:none;border:0.5px solid #ddd;border-radius:4px;padding:2px 6px;cursor:pointer">データ消去</button>
+    <div class="stat-item">HP <span id="hero-maxhp-label">120</span></div>
+    <div class="stat-item">ATK <span id="hero-atk-label">5</span></div>
+    <button class="reset-btn" onclick="resetHeroData()">RESET</button>
   </div>
   <div class="game-wrap">
-    <div class="battle-area">
+    <div class="battle-area dot-box">
       <div class="fighters">
         <div class="fighter player-hp">
-          <div class="fighter-name">勇者</div>
+          <div class="fighter-name">▶ 勇者</div>
           <div class="hp-bar-bg"><div class="hp-bar-fill" id="player-hp-fill" style="width:100%"></div></div>
           <div class="hp-label" id="player-hp-label">120 / 120</div>
         </div>
@@ -86,19 +374,19 @@ body { background: transparent; }
         </div>
       </div>
       <div class="sprite-row">
-        <div class="sprite" id="player-sprite">⚔️</div>
+        <div class="sprite" id="player-sprite"></div>
         <div class="sprite" id="enemy-sprite" style="text-align:right"></div>
       </div>
       <div class="combo-badge" id="combo-msg"></div>
     </div>
-    <div class="timer-wrap">
+    <div class="timer-wrap dot-box" style="padding:6px 10px;">
       <div class="timer-label">
-        <span>⚡ 敵の攻撃まで</span>
+        <span>⚡ ENEMY ATK</span>
         <span id="timer-sec">--</span>
       </div>
       <div class="timer-bar-bg"><div class="timer-bar-fill safe" id="timer-bar" style="width:100%"></div></div>
     </div>
-    <div class="word-display" id="word-display-box">
+    <div class="word-display dot-box" id="word-display-box">
       <div class="word-kanji" id="word-kanji">—</div>
       <div class="word-kana-small" id="word-kana-small">—</div>
       <div class="kana-display" id="kana-display">—</div>
@@ -106,13 +394,224 @@ body { background: transparent; }
     </div>
     <div class="msg-bar" id="msg-bar"></div>
     <div class="overlay" id="overlay">
-      <div class="overlay-title" id="overlay-title">タイピングRPG</div>
+      <div class="overlay-title" id="overlay-title">TYPING RPG</div>
       <div class="overlay-sub" id="overlay-sub">全8ステージ、魔王を倒して世界を救え！</div>
-      <button id="overlay-btn">ゲームスタート</button>
+      <button id="overlay-btn">► START</button>
     </div>
   </div>
 </div>
 
+<script>
+// ===== ドット絵スプライト (16x16 pixel art, SVG生成) =====
+function pixelSVG(grid, palette){
+  // grid: 16x16 の文字配列（各文字がpaletteのキー、"."は透明）
+  const cell=16, size=cell*16;
+  let rects="";
+  for(let y=0;y<grid.length;y++){
+    const row=grid[y];
+    for(let x=0;x<row.length;x++){
+      const c=row[x];
+      if(c==="."||!palette[c]) continue;
+      rects+=`<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}" fill="${palette[c]}"/>`;
+    }
+  }
+  return `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
+}
+
+const P = {
+  // 勇者（剣士）
+  hero: {
+    grid:[
+"................",
+"......hhhh......",
+".....hSSSSh.....",
+".....hSeSeh.....",
+".....hSSSSh.....",
+"......hhhh......",
+".....aAAAAa.....",
+"....aAMMMMAa....",
+"...aAMMmmMMAa...",
+"...AMMmkkmMMA...",
+"...AMMmkkmMMA...",
+"....AAmkkmAA....",
+".....bb..bb.....",
+".....bb..bb.....",
+"....BBB..BBB....",
+"................"],
+    pal:{h:"#caa472",S:"#f4c89a",e:"#2a2a2a",a:"#888888",A:"#aaaaaa",M:"#3a5fc4",m:"#5a7fe4",k:"#e0c050",b:"#5a3a20",B:"#3a2a14"}
+  },
+  // ステージ1: ゾンビ
+  zombie: {
+    grid:[
+"................",
+".....gggggg.....",
+"....g6g66g6g....",
+"....g6gggg6g....",
+"....g666666g....",
+".....gggggg.....",
+".....g7gg7g.....",
+"....g7gggg7g....",
+"....g7gggg7g....",
+"....gg7777gg....",
+".....g7777g.....",
+".....g7..7g.....",
+".....g....g.....",
+".....77..77.....",
+"....555..555....",
+"................"],
+    pal:{g:"#5a8a4a","6":"#2a4a1a","7":"#3a6a2a","5":"#3a3a3a"}
+  },
+  // ステージ2: ゴブリン将軍
+  goblin: {
+    grid:[
+"................",
+"......jjjj......",
+".....jGGGGj.....",
+"....jGrGGrGj....",
+"....jGGeeGGj....",
+".....jGGGGj.....",
+"......jjjj......",
+".....mMMMMm.....",
+"....mMRRRRMm....",
+"....mMR##RMm....",
+"....mMR##RMm....",
+".....MM##MM.....",
+".....nn..nn.....",
+".....nn..nn.....",
+"....NNN..NNN....",
+"................"],
+    pal:{j:"#3a7a3a",G:"#5aaa5a",r:"#cc3333",e:"#1a1a1a",m:"#7a5a3a",M:"#9a7a4a",R:"#c03030","#":"#e0e0e0",n:"#5a4020",N:"#3a2a10"}
+  },
+  // ステージ3: オーク戦士
+  orc: {
+    grid:[
+"................",
+".....ooooo......",
+"....oOOOOOo.....",
+"....oOttttOo....",
+"....oOOeeOO.....",
+".....oOOOO......",
+"......oooo......",
+".....DDDDDD.....",
+"....DSSSSSSD....",
+"....DSffffSD....",
+"....DSffffSD....",
+".....SSffSS.....",
+".....pp..pp.....",
+".....pp..pp.....",
+"....PPP..PPP....",
+"................"],
+    pal:{o:"#4a7a3a",O:"#6a9a5a",t:"#dddddd",e:"#1a1a1a",D:"#5a4a3a",S:"#7a6a4a",f:"#888888",p:"#5a4a30",P:"#3a2a18"}
+  },
+  // ステージ4: 闇の騎士
+  darkknight: {
+    grid:[
+"................",
+"......kkkk......",
+".....kKKKKk.....",
+".....kKrrKk.....",
+".....kKKKKk.....",
+"......kkkk......",
+".....vVVVVv.....",
+"....vVAAAAVv....",
+"....vVA##AVv....",
+"....vVA##AVv....",
+".....VV##VV.....",
+".....ss..ss.....",
+".....SS..SS.....",
+".....ss..ss.....",
+"....sss..sss....",
+"................"],
+    pal:{k:"#2a2a3a",K:"#1a1a2a",r:"#cc2222",v:"#3a2a4a",V:"#4a3a5a",A:"#5a4a6a","#":"#8a3aaa",s:"#2a2a3a",S:"#1a1a2a"}
+  },
+  // ステージ5: 邪竜
+  dragon: {
+    grid:[
+"...wwwwwwww.....",
+"..wWWWWWWWWw....",
+".wWReeReeRWWw...",
+".WRRRRRRRRRWw...",
+"..WRRttttRRW....",
+"...WRRRRRRW.....",
+"....WWWWWW......",
+"...wWWWWWWw.....",
+"..wWWccccWWw....",
+"..WWWccccWWW....",
+"..WWWWWWWWWW....",
+"...wwwwwwww.....",
+".....ll..ll.....",
+".....LL..LL.....",
+"....lll..lll....",
+"................"],
+    pal:{w:"#7a2a4a",W:"#9a3a5a",R:"#aa4a5a",e:"#ffe040",t:"#dddddd",c:"#cc6a3a",l:"#5a1a2a",L:"#3a1018"}
+  },
+  // ステージ6: 堕天使
+  fallenangel: {
+    grid:[
+"..ffff..ffff....",
+".fFFFFffFFFFf...",
+"fFF..FFFF..FFf..",
+"......hhhh......",
+".....hHHHHh.....",
+".....hHeeHh.....",
+".....hHHHHh......",
+"......hhhh......",
+".....vVVVVv.....",
+"....vVAAAAVv....",
+"....vVA##AVv....",
+".....VV##VV.....",
+".....gg..gg.....",
+".....GG..GG.....",
+"....ggg..ggg....",
+"................"],
+    pal:{f:"#1a1a2a",F:"#2a2a3a",h:"#caa472",H:"#f4c89a",e:"#cc2222",v:"#3a1a4a",V:"#5a2a6a",A:"#6a3a7a","#":"#8a4a9a",g:"#2a2a3a",G:"#1a1a2a"}
+  },
+  // ステージ7: 邪神
+  evilgod: {
+    grid:[
+"...EEEEEEEE.....",
+"..EeeeeeeeeE....",
+".EeeRRRRRReeE...",
+".EeRRoooRRReE...",
+".EeRRoYoRReeE...",
+".EeRRRoRRReeE...",
+"..EeeRRReeE.....",
+"...EeeeeeE......",
+"....EEEEEE......",
+"...EEMMMMEE.....",
+"..EEMM##MMEE....",
+"...EEM##MEE.....",
+"....EEEEEE......",
+".....dd..dd.....",
+"....DDD..DDD....",
+"................"],
+    pal:{E:"#0a0a2a",e:"#1a1a4a",R:"#3a1a5a",o:"#5a2a7a",Y:"#ffe040",M:"#2a1a4a","#":"#6a2a9a",d:"#1a0a2a",D:"#0a0518"}
+  },
+  // ステージ8: 魔王ダークロス（最終）
+  demonlord: {
+    grid:[
+"..hh......hh....",
+".hHh......hHh...",
+"..hh.kkkk.hh....",
+".....kKKKk......",
+"....kKRRRKk.....",
+"....kKReRKk.....",
+"....kKRRRKk......",
+".....kKKKk......",
+".....VVVVVV.....",
+"....VVAAAAVV....",
+"....VVA##AVV....",
+".....VAA##AV.....",
+".....mm..mm.....",
+".....MM..MM.....",
+"....mmm..mmm....",
+"................"],
+    pal:{h:"#2a0a0a",H:"#4a1414",k:"#1a0a1a",K:"#2a1428",R:"#cc1a1a",e:"#ffe040",V:"#3a0a3a",A:"#5a1a5a","#":"#8a2a8a",m:"#2a0a2a",M:"#1a051a"}
+  }
+};
+
+function spriteHTML(key){ return pixelSVG(P[key].grid, P[key].pal); }
+</script>
 <script>
 // ===== Audio =====
 const AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -351,48 +850,66 @@ function isValidRomanPrefixForKana(buf, kana) {
 // バッファ + 次のかな文字 を渡して、確定できるなら {kana, remaining} を返す
 // 確定できない（まだ入力待ち）なら null を返す
 // 変換不能（ミス）なら false を返す
-function tryConvert(buf, curKana, nextKana){
+// buf: 現在の入力バッファ, restKana: kanaPos以降の残り全かな文字列
+// 戻り値: 確定できれば {kana, remaining}（kanaは消費したかな文字列、1〜2文字）
+//         まだ入力待ちなら null
+//         無効な入力なら false
+function tryConvert(buf, restKana){
   if(!buf) return null;
+  if(!restKana) return false;
 
-  // ① っ: 同子音2連 (n以外)
-  if(buf.length>=2 && buf[0]===buf[1] && buf[0]!=="n" && /[bcdfghjklmpqrstvwxyz]/.test(buf[0])){
-    return { kana:"っ", remaining: buf.slice(1) };
-  }
-
-  // ② ん系
-  if(buf==="nn"||buf==="n'") return { kana:"ん", remaining:"" };
-  if(buf[0]==="n" && buf.length>=2 && !"aiueoyn".includes(buf[1])){
-    // n + 子音 → ん確定（その子音はそのまま残す）
-    return { kana:"ん", remaining: buf.slice(1) };
-  }
-  if(buf==="n"){
-    // 判定対象が「ん」の場合のみ確定、それ以外（「ね」「な」等のn始まり）は次の文字の入力を待つ
-    if(curKana==="ん"){
-      if(!nextKana) return { kana:"ん", remaining:"" };
+  // ① っ
+  if(restKana.startsWith("っ")){
+    // 同子音2連で確定
+    if(buf.length>=2 && buf[0]===buf[1] && buf[0]!=="n" && /[bcdfghjklmpqrstvwxyz]/.test(buf[0])){
+      return { kana:"っ", remaining: buf.slice(1) };
     }
-    return null;
+    // ltu/xtu/ltsu/xtsu で確定
+    if(buf==="ltu"||buf==="xtu"||buf==="ltsu"||buf==="xtsu"){
+      return { kana:"っ", remaining:"" };
+    }
+    // 子音1文字だけ打った状態（次に同じ子音が来るのを待っている）はWAIT
+    if(buf.length===1 && /[bcdfghjklmpqrstvwxyz]/.test(buf)){
+      return null;
+    }
   }
 
-  // ③ TABLE を長い順にフルマッチ検索
-  // バッファ長より長いエントリが「前方一致」している場合はまだ待つ
-  const exact = TABLE.filter(([r])=> r===buf);
-  const longer = TABLE.filter(([r])=> r.length>buf.length && r.startsWith(buf));
-
-  if(exact.length>0 && longer.length===0){
-    // 完全一致のみ → 確定
-    return { kana: exact[0][1], remaining:"" };
+  // ② ん
+  if(restKana.startsWith("ん")){
+    if(buf==="nn"||buf==="n'") return { kana:"ん", remaining:"" };
+    if(buf.length>=2 && buf[0]==="n" && !"aiueoyn".includes(buf[1])){
+      // n + 子音 → ん確定、子音は次の文字として残す
+      return { kana:"ん", remaining: buf.slice(1) };
+    }
+    if(buf==="n"){
+      const rest=restKana.slice(1);
+      if(!rest) return { kana:"ん", remaining:"" };
+      return null; // 次の文字次第（nn確定 or んを確定して次へ進む）
+    }
   }
-  if(exact.length>0 && longer.length>0){
-    // 完全一致もあるが、より長いマッチの可能性もある → 次のキー次第
-    // ここは「今の長さで確定」とする（次キーで longer にマッチする可能性は次バッファで処理）
+  if(buf==="n" && !restKana.startsWith("ん")){
+    return null; // 単独nはまだ確定しない
+  }
+
+  // ③ TABLE: restKanaの先頭（1〜2文字）に対応するローマ字表記の中で完全一致・前方一致を判定
+  //    2文字（拗音）を優先してチェック
+  const twoKana = restKana.slice(0,2);
+  const oneKana = restKana.slice(0,1);
+
+  const candidatesTwo = TABLE.filter(([r,k])=> k===twoKana);
+  const candidatesOne = TABLE.filter(([r,k])=> k===oneKana);
+  const candidates = [...candidatesTwo, ...candidatesOne];
+
+  const exact = candidates.filter(([r])=> r===buf);
+  const longer = candidates.filter(([r])=> r.length>buf.length && r.startsWith(buf));
+
+  if(exact.length>0){
     return { kana: exact[0][1], remaining:"" };
   }
   if(longer.length>0){
-    // 前方一致のみ → まだ待つ
     return null;
   }
 
-  // 何にもマッチしない → false（ミス）
   return false;
 }
 
@@ -467,14 +984,14 @@ const W7=[{kanji:"宇宙の果てに眠る混沌",kana:"うちゅうのはてに
 const W8=[{kanji:"絶対なる破滅の支配者",kana:"ぜったいなるはめつのしはいしゃ"},{kanji:"宇宙の法則を書き換える者",kana:"うちゅうのほうそくをかきかえるもの"},{kanji:"全ての命を喰らう虚無の化身",kana:"すべてのいのちをくらうきょむのけしん"},{kanji:"千年の業火が生んだ究極の悪",kana:"せんねんのごうかがうんだきゅうきょくのあく"},{kanji:"時の始まりから存在する滅びの神",kana:"ときのはじまりからそんざいするほろびのかみ"},{kanji:"星々を砕き宇宙を統べる暗黒神",kana:"ほしぼしをくだきうちゅうをすべるあんこくしん"},{kanji:"魂の絶叫が宿る終末の魔剣",kana:"たましいのぜっきょうがやどるしゅうまつのまけん"},{kanji:"全知全能の破壊神が下す最後の審判",kana:"ぜんちぜんのうのはかいしんがくだすさいごのしんぱん"},{kanji:"世界の果てで輝く滅亡の星",kana:"せかいのはてできらめくめつぼうのほし"},{kanji:"永遠に消えることのない絶望の炎",kana:"えいえんにきえることのないぜつぼうのほのお"},{kanji:"六千年の怨念が凝縮した滅びの魔王",kana:"ろくせんねんのおんねんがぎょうしゅくしたほろびのまおう"},{kanji:"死と絶望が生み出した終焉の化身",kana:"しとぜつぼうがうみだしたしゅうえんのけしん"}];
 
 const STAGES=[
-  {name:"ゾンビ",        sprite:"🧟",maxHp:40, wordPool:W1,count:6, timerSec:12.0, timerDmg:8,  diffLabel:"Lv.1",diffColor:"#4CAF82"},
-  {name:"ゴブリン将軍",  sprite:"👺",maxHp:60, wordPool:W2,count:7, timerSec:11.0, timerDmg:10, diffLabel:"Lv.2",diffColor:"#5B9BD5"},
-  {name:"オーク戦士",    sprite:"👹",maxHp:80, wordPool:W3,count:8, timerSec:10.0, timerDmg:12, diffLabel:"Lv.3",diffColor:"#8A7FC7"},
-  {name:"闇の騎士",      sprite:"🗡️", maxHp:100,wordPool:W4,count:8, timerSec:9.0,  timerDmg:14, diffLabel:"Lv.4",diffColor:"#C07840"},
-  {name:"邪竜",          sprite:"🐲",maxHp:120,wordPool:W5,count:9, timerSec:8.0,  timerDmg:16, diffLabel:"Lv.5",diffColor:"#C84B4B"},
-  {name:"堕天使",        sprite:"😈",maxHp:140,wordPool:W6,count:9, timerSec:7.0,  timerDmg:18, diffLabel:"Lv.6",diffColor:"#A030A0"},
-  {name:"邪神",          sprite:"🌑",maxHp:170,wordPool:W7,count:10,timerSec:6.0,  timerDmg:20, diffLabel:"Lv.7",diffColor:"#303090"},
-  {name:"魔王ダークロス",sprite:"👿",maxHp:200,wordPool:W8,count:10,timerSec:5.0,  timerDmg:25, diffLabel:"FINAL",diffColor:"#8B0000"},
+  {name:"ゾンビ",        spriteKey:"zombie",      maxHp:40, wordPool:W1,count:6, timerSec:12.0, timerDmg:8,  diffLabel:"Lv.1",diffColor:"#4CAF82"},
+  {name:"ゴブリン将軍",  spriteKey:"goblin",       maxHp:60, wordPool:W2,count:7, timerSec:11.0, timerDmg:10, diffLabel:"Lv.2",diffColor:"#5B9BD5"},
+  {name:"オーク戦士",    spriteKey:"orc",          maxHp:80, wordPool:W3,count:8, timerSec:10.0, timerDmg:12, diffLabel:"Lv.3",diffColor:"#8A7FC7"},
+  {name:"闇の騎士",      spriteKey:"darkknight",   maxHp:100,wordPool:W4,count:8, timerSec:9.0,  timerDmg:14, diffLabel:"Lv.4",diffColor:"#C07840"},
+  {name:"邪竜",          spriteKey:"dragon",       maxHp:120,wordPool:W5,count:9, timerSec:8.0,  timerDmg:16, diffLabel:"Lv.5",diffColor:"#C84B4B"},
+  {name:"堕天使",        spriteKey:"fallenangel",  maxHp:140,wordPool:W6,count:9, timerSec:7.0,  timerDmg:18, diffLabel:"Lv.6",diffColor:"#A030A0"},
+  {name:"邪神",          spriteKey:"evilgod",      maxHp:170,wordPool:W7,count:10,timerSec:6.0,  timerDmg:20, diffLabel:"Lv.7",diffColor:"#303090"},
+  {name:"魔王ダークロス",spriteKey:"demonlord",    maxHp:200,wordPool:W8,count:10,timerSec:5.0,  timerDmg:25, diffLabel:"FINAL",diffColor:"#8B0000"},
 ];
 
 // ===== レベル・経験値システム =====
@@ -492,18 +1009,37 @@ const SAVE_KEY = "typing_rpg_hero";
 
 let hero = { lv:1, exp:0 }; // 永続データ
 
+// window.storage (アーティファクト環境) があればそちらを優先、
+// なければ localStorage にフォールバックして単体HTMLでも保存できるようにする
 async function loadHero(){
   try {
-    const r = await window.storage.get(SAVE_KEY);
-    if(r && r.value){
-      const d = JSON.parse(r.value);
-      hero = { lv: d.lv||1, exp: d.exp||0 };
+    if(window.storage && typeof window.storage.get==="function"){
+      const r = await window.storage.get(SAVE_KEY);
+      if(r && r.value){
+        const d = JSON.parse(r.value);
+        hero = { lv: d.lv||1, exp: d.exp||0 };
+      }
+    } else {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(raw){
+        const d = JSON.parse(raw);
+        hero = { lv: d.lv||1, exp: d.exp||0 };
+      }
     }
   } catch(e){ hero={lv:1,exp:0}; }
   renderHeroStatus();
 }
 async function saveHero(){
-  try { await window.storage.set(SAVE_KEY, JSON.stringify(hero)); } catch(e){}
+  try {
+    if(window.storage && typeof window.storage.set==="function"){
+      await window.storage.set(SAVE_KEY, JSON.stringify(hero));
+    } else {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(hero));
+    }
+  } catch(e){
+    // window.storageが失敗した場合もlocalStorageに保存を試みる
+    try{ localStorage.setItem(SAVE_KEY, JSON.stringify(hero)); }catch(e2){}
+  }
 }
 async function resetHeroData(){
   if(!confirm("勇者データを初期化しますか？（Lv.1に戻ります）")) return;
@@ -570,7 +1106,7 @@ function tickTimer(){
   const pct=(remaining/s.timerSec)*100;
   const bar=$("timer-bar");
   bar.style.width=pct+"%";
-  bar.className="timer-bar-fill "+(pct>50?"safe":pct>25?"warn":"");
+  bar.className="timer-bar-fill "+(pct>50?"safe":pct>20?"warn":"danger");
   $("timer-sec").textContent=remaining.toFixed(1)+"秒";
   if(timerElapsed>=s.timerSec){
     // 敵の攻撃！
@@ -592,7 +1128,7 @@ function onTimerDamage(){
   renderHp();
   if(state.playerHp<=0){
     state.done=true;stopTimer();sndGameover();
-    showOverlay("ゲームオーバー",`${STAGES[state.stage].name}に敗れた…`,"もう一度挑戦");
+    showOverlay("GAME OVER",`${STAGES[state.stage].name}に敗れた…`,"► RETRY");
   }
 }
 
@@ -606,7 +1142,8 @@ function initStage(idx){
   const db=`<span class="diff-badge" style="background:${s.diffColor}22;color:${s.diffColor};border:0.5px solid ${s.diffColor}66">${s.diffLabel}</span>`;
   $("stage-label").innerHTML=`ステージ ${idx+1} / ${STAGES.length} ${db}`;
   $("enemy-name").textContent=s.name;
-  $("enemy-sprite").textContent=s.sprite;
+  $("enemy-sprite").innerHTML=spriteHTML(s.spriteKey);
+  $("player-sprite").innerHTML=spriteHTML("hero");
   renderHp();nextWord();setMsg("","");$("overlay").style.display="none";
   startTimer();
 }
@@ -656,7 +1193,7 @@ function onMiss(){
   setTimeout(()=>$("word-display-box").style.outline="",300);
   animSprite("player-sprite");sndMiss();
   setMsg(`ミス！`,"bad");
-  romanBuf="";renderDisplay();
+  renderDisplay();
 }
 function onComplete(){
   const dmg=calcAttackDmg(hero.lv);
@@ -681,10 +1218,10 @@ function onComplete(){
     addExp(expGain);
     if(state.stage+1>=STAGES.length){
       sndClear();stopBGM();bgmPlaying=false;$("bgm-btn").textContent="🔇";
-      showOverlay("🎉 全ステージクリア！",`魔王ダークロスを打ち倒し\n世界に真の平和が訪れた！\n+${expGain}EXP 獲得！`,"最初から遊ぶ");
+      showOverlay("★ CLEAR! ★",`魔王ダークロスを打ち倒し\n世界に真の平和が訪れた！\n+${expGain}EXP 獲得！`,"► PLAY AGAIN");
     } else {
       sndDefeat();
-      showOverlay(`ステージ ${state.stage+1} クリア！`,`次の強敵： ${STAGES[state.stage+1].name}\n+${expGain}EXP 獲得！`,"次のステージへ");
+      showOverlay(`STAGE ${state.stage+1} CLEAR!`,`次の強敵： ${STAGES[state.stage+1].name}\n+${expGain}EXP 獲得！`,"► NEXT STAGE");
     }
     return;
   }
@@ -692,30 +1229,35 @@ function onComplete(){
 }
 
 document.addEventListener("keydown",e=>{
-  if(state.done) return;
   if($("overlay").style.display!=="none"){if(e.key==="Enter")$("overlay-btn").click();return;}
+  if(state.done) return;
   if(e.key.length!==1||!/[a-z']/i.test(e.key)) return;
   e.preventDefault();resumeAC();
   const ch=e.key.toLowerCase();
   const kana=state.currentWord.kana;
   const newBuf=romanBuf+ch;
-  const curKana=kana[kanaPos];
-  const nextKana=kana[kanaPos+1]||null;
-  const result=tryConvert(newBuf,curKana,nextKana);
+  const restKana=kana.slice(kanaPos);
+
+  // newBuf が restKana に対して有効な入力かどうかを先にチェック。
+  // 無効なら romanBuf は変更せず、直前まで合っていた部分から再開できるようにする。
+  if(!isValidRomanPrefixForKana(newBuf, restKana)){
+    onMiss();
+    return;
+  }
+
+  const result=tryConvert(newBuf, restKana);
 
   if(result===false){ onMiss(); return; }
   if(result===null){
-    // まだ待つ。ただし前方一致チェック
-    if(!isValidRomanPrefixForKana(newBuf, kana.slice(kanaPos))){ onMiss(); return; }
     romanBuf=newBuf; renderDisplay(); return;
   }
   // 確定
-  if(!kana.slice(kanaPos).startsWith(result.kana)){ onMiss(); return; }
+  if(!restKana.startsWith(result.kana)){ onMiss(); return; }
   kanaPos+=result.kana.length;
   romanBuf=result.remaining;
-  // remainingをさらに変換
+  // remainingをさらに変換（っの直後に次の文字まで一気に打てた場合など）
   while(romanBuf.length>0&&kanaPos<kana.length){
-    const r2=tryConvert(romanBuf,kana[kanaPos],kana[kanaPos+1]||null);
+    const r2=tryConvert(romanBuf, kana.slice(kanaPos));
     if(!r2||r2===false||!kana.slice(kanaPos).startsWith(r2.kana)) break;
     kanaPos+=r2.kana.length;romanBuf=r2.remaining;
   }
@@ -726,9 +1268,8 @@ document.addEventListener("keydown",e=>{
 $("overlay-btn").addEventListener("click",function(){
   resumeAC();
   if(!bgmPlaying){bgmPlaying=true;$("bgm-btn").textContent="🔊";playBGM();}
-  if(this.textContent==="次のステージへ") initStage(state.stage+1);
+  if(this.textContent==="► NEXT STAGE") initStage(state.stage+1);
   else{
-    // 最初から or もう一度挑戦: HP全回復して再スタート
     state.playerHp = calcMaxHp(hero.lv);
     initStage(0);
   }
