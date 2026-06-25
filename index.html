@@ -501,6 +501,7 @@
       margin-left: 8px;
       text-shadow: 1px 1px 0 #000;
     }
+
     .bgm-btn:hover {
       opacity: 1;
       border-color: var(--gold);
@@ -553,12 +554,94 @@
     .seg-cur {
       animation: blink 0.8s steps(1) infinite;
     }
+
+    /* ダメージ・回復フロート */
+    .dmg-float {
+      position: absolute;
+      pointer-events: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 15px;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+      animation: dmg-rise 1.3s ease-out forwards;
+      z-index: 200;
+      white-space: nowrap;
+      letter-spacing: 0.05em;
+    }
+
+    /* ポーズオーバーレイ */
+    .pause-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 8, 0.82);
+      border: 3px solid var(--accent);
+      box-shadow: inset 0 0 0 1px var(--border);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      z-index: 150;
+    }
+
+    .pause-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 22px;
+      color: var(--accent);
+      text-shadow: 2px 2px 0 #000;
+      letter-spacing: 0.1em;
+    }
+
+    .pause-hint {
+      font-family: 'DotGothic16', monospace;
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .pause-resume-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      color: var(--bg);
+      background: var(--accent);
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: transform 0.05s, box-shadow 0.05s;
+    }
+
+    .pause-resume-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    @keyframes dmg-rise {
+      0% {
+        opacity: 1;
+        transform: translateY(0px) scale(1.4);
+      }
+
+      15% {
+        opacity: 1;
+        transform: translateY(-18px) scale(1.1);
+      }
+
+      60% {
+        opacity: 1;
+        transform: translateY(-44px) scale(1.0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-72px) scale(0.8);
+      }
+    }
   </style>
 
   <div id="game">
     <div class="stage-banner">
       <span id="stage-label">ステージ 1 / 8</span>
       <button class="bgm-btn" id="bgm-btn">♪OFF</button>
+      <button class="bgm-btn" id="pause-btn" onclick="togglePause()" style="margin-left:4px">⏸ ESC</button>
     </div>
     <div class="hero-status dot-box" id="hero-status">
       <div class="hero-lv" id="hero-lv">Lv.1</div>
@@ -624,6 +707,11 @@
         <div class="overlay-title" id="overlay-title">TYPING RPG</div>
         <div class="overlay-sub" id="overlay-sub">全8ステージ、魔王を倒して世界を救え！</div>
         <button id="overlay-btn">► START</button>
+      </div>
+      <div class="pause-overlay" id="pause-overlay">
+        <div class="pause-title">⏸ PAUSE</div>
+        <div class="pause-hint">ESC キーまたはボタンで再開</div>
+        <button class="pause-resume-btn" onclick="togglePause()">► RESUME</button>
       </div>
     </div>
   </div>
@@ -1220,7 +1308,7 @@
     const W2 = [
       { kanji: "暗黒騎士", kana: "あんこくきし" }, { kanji: "炎の精霊", kana: "ほのおのせいれい" },
       { kanji: "毒の沼", kana: "どくのぬま" }, { kanji: "骸骨兵", kana: "がいこつへい" },
-      { kanji: "魔法陣", kana: "まほうじん" }, { kanji: "死の呪い", kana: "しのろい" },
+      { kanji: "魔法陣", kana: "まほうじん" }, { kanji: "死の呪い", kana: "しののろい" },
       { kanji: "冥界の門", kana: "めいかいのもん" }, { kanji: "炎竜", kana: "えんりゅう" },
       { kanji: "氷の刃", kana: "こおりのやいば" }, { kanji: "雷の鎖", kana: "かみなりのくさり" },
       { kanji: "血の池", kana: "ちのいけ" }, { kanji: "業火", kana: "ごうか" },
@@ -1480,8 +1568,18 @@
         try { localStorage.setItem(SAVE_KEY, JSON.stringify(hero)); } catch (e2) { }
       }
     }
+    // confirmダイアログを閉じた直後のEnterイベントがオーバーレイに漏れるのを防ぐフラグ
+    let confirmOpen = false;
+
     async function resetHeroData() {
-      if (!confirm("勇者データを初期化しますか？（Lv.1に戻ります）")) return;
+      confirmOpen = true;
+      const ok = confirm("勇者データを初期化しますか？（Lv.1に戻ります）");
+      // confirmを閉じた直後のEnterがページへ漏れるブラウザの挙動対策
+      await new Promise(r => setTimeout(r, 120));
+      confirmOpen = false;
+      // RESETボタンにフォーカスが残るとEnterで再発火するため外す
+      if (document.activeElement) document.activeElement.blur();
+      if (!ok) return;
       hero = { lv: 1, exp: 0 };
       await saveHero();
       renderHeroStatus();
@@ -1532,6 +1630,7 @@
 
     let state = {}, romanBuf = "", kanaPos = 0;
     let timerRaf = null, timerStart = 0, timerElapsed = 0;
+    let isPaused = false;
     const $ = id => document.getElementById(id);
     const shuffle = a => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[b[i], b[j]] = [b[j], b[i]]; } return b; };
     const pick = (pool, n) => shuffle(pool).slice(0, Math.min(n, pool.length));
@@ -1544,6 +1643,27 @@
     }
     function stopTimer() {
       if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
+    }
+
+    // ===== ポーズ =====
+    function togglePause() {
+      if (isPaused) resumeGame(); else pauseGame();
+    }
+    function pauseGame() {
+      // ゲーム中のみポーズ可能
+      if (state.done || $("overlay").style.display !== "none") return;
+      isPaused = true;
+      stopTimer(); // timerElapsedはそのまま保持される
+      $("pause-overlay").style.display = "flex";
+      $("pause-btn").textContent = "► RUN";
+    }
+    function resumeGame() {
+      isPaused = false;
+      $("pause-overlay").style.display = "none";
+      $("pause-btn").textContent = "⏸ ESC";
+      // タイマーを正確に残り時間から再開
+      timerStart = performance.now() - timerElapsed * 1000;
+      timerRaf = requestAnimationFrame(tickTimer);
     }
     function tickTimer() {
       if (state.done) { stopTimer(); return; }
@@ -1569,6 +1689,7 @@
       const s = STAGES[state.stage];
       state.playerHp -= s.timerDmg;
       animSprite("player-sprite"); sndMiss();
+      showDamageFloat("player-sprite", `-${s.timerDmg}`, "#ff5050");
       $("word-display-box").style.outline = "2px solid #E24B4A";
       setTimeout(() => $("word-display-box").style.outline = "", 400);
       setMsg(`⚡ 敵の攻撃！ -${s.timerDmg} HP`, "bad");
@@ -1682,6 +1803,26 @@
 
     function setMsg(t, type) { const el = $("msg-bar"); el.textContent = t; el.className = "msg-bar" + (type ? " " + type : ""); }
     function animSprite(id) { const el = $(id); el.style.transform = "scale(1.3)"; setTimeout(() => el.style.transform = "", 150); }
+
+    // ダメージ・回復フロート表示
+    function showDamageFloat(anchorId, text, color) {
+      const anchorEl = $(anchorId);
+      if (!anchorEl) return;
+      const wrap = document.querySelector('.game-wrap');
+      const aRect = anchorEl.getBoundingClientRect();
+      const wRect = wrap.getBoundingClientRect();
+      const el = document.createElement('div');
+      el.className = 'dmg-float';
+      el.textContent = text;
+      el.style.color = color;
+      // スプライトの中央上部に出す
+      const cx = aRect.left - wRect.left + aRect.width / 2;
+      const cy = aRect.top - wRect.top;
+      el.style.left = (cx - 30) + 'px';
+      el.style.top = cy + 'px';
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 1400);
+    }
     function showOverlay(t, s, b) { $("overlay-title").textContent = t; $("overlay-sub").textContent = s; $("overlay-btn").textContent = b; $("overlay").style.display = "flex"; }
 
     function onMiss() {
@@ -1697,6 +1838,7 @@
       const dmg = calcAttackDmg(hero.lv);
       state.enemyHp -= dmg;
       animSprite("enemy-sprite"); romanBuf = ""; kanaPos = 0;
+      showDamageFloat("enemy-sprite", `-${dmg}`, "#ff4848");
       // ワード完成でタイマーリセット
       timerStart = performance.now(); timerElapsed = 0;
 
@@ -1721,6 +1863,8 @@
       }
       if (healAmount > 0) {
         state.playerHp = Math.min(maxHp, state.playerHp + healAmount);
+        // 回復フロートはわずかに遅らせて、ダメージフロートと重ならないようにする
+        setTimeout(() => showDamageFloat("player-sprite", `+${healAmount}`, "#40e880"), 200);
         setMsg(`撃破！ -${dmg} / ${healMsg}`, "good");
         sndCombo();
         // ゲージセグを点滅させる
@@ -1755,8 +1899,13 @@
     }
 
     document.addEventListener("keydown", e => {
-      if ($("overlay").style.display !== "none") { if (e.key === "Enter") $("overlay-btn").click(); return; }
-      if (state.done) return;
+      // ESCキーでポーズ・再開
+      if (e.key === "Escape") {
+        togglePause();
+        return;
+      }
+      if ($("overlay").style.display !== "none") { if (e.key === "Enter" && !confirmOpen) $("overlay-btn").click(); return; }
+      if (state.done || isPaused) return;
       if (e.key.length !== 1 || !/[a-z']/i.test(e.key)) return;
       e.preventDefault(); resumeAC();
       const ch = e.key.toLowerCase();
