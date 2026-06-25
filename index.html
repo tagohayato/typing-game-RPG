@@ -1,1494 +1,1810 @@
-
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"></head><body>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap');
+<html>
 
-:root {
-  --bg:       #0a0a1a;
-  --panel:    #12122a;
-  --border:   #4a4a8a;
-  --accent:   #6868d4;
-  --gold:     #f0c040;
-  --green:    #40d060;
-  --red:      #e04040;
-  --orange:   #f08020;
-  --white:    #e8e8f8;
-  --gray:     #6868a8;
-  --darkgray: #2a2a4a;
-}
+<head>
+  <meta charset="utf-8">
+</head>
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-  width: 100%;
-  height: 100%;
-  min-height: 100vh;
-  background: var(--bg);
-}
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+<body>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap');
 
-/* ドット風ボーダー：擬似的に太い2px solid + inset shadow で "枠" 感を出す */
-.dot-box {
-  border: 3px solid var(--border);
-  box-shadow: inset 0 0 0 1px var(--accent), 3px 3px 0 #000;
-  background: var(--panel);
-  image-rendering: pixelated;
-}
+    :root {
+      --bg: #0a0a1a;
+      --panel: #12122a;
+      --border: #4a4a8a;
+      --accent: #6868d4;
+      --gold: #f0c040;
+      --green: #40d060;
+      --red: #e04040;
+      --orange: #f08020;
+      --white: #e8e8f8;
+      --gray: #6868a8;
+      --darkgray: #2a2a4a;
+    }
 
-#game {
-  padding: 0.75rem 0;
-  user-select: none;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 14px;
-  background: var(--bg);
-  color: var(--white);
-  border-radius: 4px;
-  padding: 28px;
-  width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* ステージバナー */
-.stage-banner {
-  text-align: center;
-  font-size: 13px;
-  color: var(--gold);
-  margin-bottom: 12px;
-  letter-spacing: 0.05em;
-  text-shadow: 1px 1px 0 #000;
-}
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      background: var(--bg);
+    }
 
-/* 勇者ステータス */
-.hero-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-}
-.hero-lv {
-  font-size: 13px;
-  color: var(--gold);
-  white-space: nowrap;
-  text-shadow: 1px 1px 0 #000;
-}
-.exp-wrap { flex: 1; }
-.exp-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--gray);
-  margin-bottom: 4px;
-}
-.exp-bar-bg {
-  height: 11px;
-  background: var(--darkgray);
-  border: 2px solid var(--border);
-  overflow: hidden;
-}
-.exp-bar-fill {
-  height: 100%;
-  background: var(--gold);
-  transition: width 0.4s steps(20);
-}
-.stat-item {
-  font-size: 10px;
-  color: var(--gray);
-  white-space: nowrap;
-}
-.stat-item span { color: var(--white); }
-.reset-btn {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
-  color: var(--gray);
-  background: none;
-  border: 1px solid var(--border);
-  padding: 4px 7px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.reset-btn:hover { color: var(--red); border-color: var(--red); }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-/* バトルエリア */
-.battle-area {
-  padding: 16px;
-  margin-bottom: 12px;
-}
-.fighters {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-.fighter { flex: 1; }
-.fighter-name {
-  font-size: 13px;
-  color: var(--gray);
-  margin-bottom: 6px;
-  text-shadow: 1px 1px 0 #000;
-  font-family: 'DotGothic16', monospace;
-}
-.hp-bar-bg {
-  height: 14px;
-  background: var(--darkgray);
-  border: 2px solid var(--border);
-  overflow: hidden;
-  margin-bottom: 3px;
-}
-.hp-bar-fill {
-  height: 100%;
-  transition: width 0.3s steps(10);
-}
-.hp-label {
-  font-size: 10px;
-  color: var(--gray);
-  text-align: right;
-}
-.player-hp .hp-bar-fill { background: var(--green); }
-.enemy-hp .hp-bar-fill { background: var(--red); }
-.enemy-hp .hp-label { text-align: left; }
+    /* ドット風ボーダー：擬似的に太い2px solid + inset shadow で "枠" 感を出す */
+    .dot-box {
+      border: 3px solid var(--border);
+      box-shadow: inset 0 0 0 1px var(--accent), 3px 3px 0 #000;
+      background: var(--panel);
+      image-rendering: pixelated;
+    }
 
-/* スプライト行 */
-.sprite-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 10px;
-  min-height: 112px;
-}
-.sprite {
-  width: 112px;
-  height: 112px;
-  line-height: 1;
-  transition: transform 0.1s steps(2);
-  image-rendering: pixelated;
-  filter: drop-shadow(3px 3px 0 #000);
-}
-.sprite svg { width: 100%; height: 100%; image-rendering: pixelated; shape-rendering: crispEdges; }
+    #game {
+      padding: 0.75rem 0;
+      user-select: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--white);
+      border-radius: 4px;
+      padding: 28px;
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+    }
 
-/* コンボ */
-.combo-badge {
-  text-align: center;
-  font-size: 12px;
-  min-height: 22px;
-  color: var(--gold);
-  text-shadow: 1px 1px 0 #000;
-}
+    /* ステージバナー */
+    .stage-banner {
+      text-align: center;
+      font-size: 13px;
+      color: var(--gold);
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+      text-shadow: 1px 1px 0 #000;
+    }
 
-/* タイマー */
-.timer-wrap { margin-bottom: 12px; }
-.timer-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--gray);
-  margin-bottom: 4px;
-}
-.timer-bar-bg {
-  height: 14px;
-  background: var(--darkgray);
-  border: 2px solid var(--border);
-  overflow: hidden;
-}
-.timer-bar-fill {
-  height: 100%;
-  transition: width 0.1s linear;
-}
-.timer-bar-fill.safe    { background: var(--green); }
-.timer-bar-fill.warn    { background: var(--orange); }
-.timer-bar-fill.danger  { background: var(--red); }
+    /* 勇者ステータス */
+    .hero-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
 
-/* 単語表示 */
-.word-display {
-  padding: 18px 14px;
-  margin-bottom: 10px;
-  text-align: center;
-}
-.word-kanji {
-  font-size: 30px;
-  color: var(--white);
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 0 #000;
-  font-family: 'DotGothic16', monospace;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-.word-kana-small {
-  font-size: 13px;
-  color: var(--gray);
-  margin-bottom: 14px;
-  font-family: 'DotGothic16', monospace;
-}
-.kana-display {
-  font-size: 24px;
-  letter-spacing: 0.15em;
-  margin-bottom: 12px;
-  min-height: 32px;
-  font-family: 'DotGothic16', monospace;
-}
-.roman-display {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 15px;
-  letter-spacing: 0.08em;
-  min-height: 28px;
-  word-break: break-all;
-  line-height: 1.8;
-}
-.kana-done  { color: var(--green); }
-.kana-cur   { color: var(--white); font-weight: 700; border-bottom: 4px solid var(--accent); }
-.kana-pending { color: #444468; }
-.seg-done   { color: var(--green); }
-.seg-cur    { color: var(--white); border-bottom: 4px solid var(--gold); }
-.seg-pending { color: #444468; }
+    .hero-lv {
+      font-size: 13px;
+      color: var(--gold);
+      white-space: nowrap;
+      text-shadow: 1px 1px 0 #000;
+    }
 
-/* メッセージ */
-.msg-bar {
-  min-height: 24px;
-  font-size: 13px;
-  color: var(--gray);
-  text-align: center;
-  margin-bottom: 6px;
-  text-shadow: 1px 1px 0 #000;
-  font-family: 'DotGothic16', monospace;
-}
-.msg-bar.good { color: var(--green); }
-.msg-bar.bad  { color: var(--red); }
+    .exp-wrap {
+      flex: 1;
+    }
 
-/* オーバーレイ */
-.overlay {
-  position: absolute;
-  top:0;left:0;right:0;bottom:0;
-  background: rgba(0,0,5,0.85);
-  border: 4px solid var(--gold);
-  box-shadow: inset 0 0 0 1px var(--accent);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  padding: 2rem;
-}
-.overlay-title {
-  font-size: 20px;
-  color: var(--gold);
-  text-shadow: 2px 2px 0 #000;
-  text-align: center;
-  line-height: 1.6;
-}
-.overlay-sub {
-  font-size: 15px;
-  color: var(--white);
-  text-align: center;
-  line-height: 2.2;
-  white-space: pre-line;
-  text-shadow: 1px 1px 0 #000;
-  font-family: 'DotGothic16', monospace;
-}
-.overlay button {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 13px;
-  color: var(--bg);
-  background: var(--gold);
-  border: 4px solid #000;
-  box-shadow: 4px 4px 0 #000;
-  padding: 12px 28px;
-  cursor: pointer;
-  transition: transform 0.05s, box-shadow 0.05s;
-}
-.overlay button:active {
-  transform: translate(2px,2px);
-  box-shadow: 1px 1px 0 #000;
-}
+    .exp-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--gray);
+      margin-bottom: 4px;
+    }
 
-/* diff バッジ */
-.diff-badge {
-  display: inline-block;
-  font-size: 10px;
-  padding: 3px 8px;
-  border: 1px solid;
-  margin-left: 8px;
-  vertical-align: middle;
-}
+    .exp-bar-bg {
+      height: 11px;
+      background: var(--darkgray);
+      border: 2px solid var(--border);
+      overflow: hidden;
+    }
 
-/* BGMボタン */
-.bgm-btn {
-  font-size: 18px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  opacity: 0.7;
-  vertical-align: middle;
-  margin-left: 8px;
-}
-.bgm-btn:hover { opacity: 1; }
+    .exp-bar-fill {
+      height: 100%;
+      background: var(--gold);
+      transition: width 0.4s steps(20);
+    }
 
-/* レベルアップフラッシュ */
-.levelup-flash { animation: lvflash 0.7s steps(4); }
-@keyframes lvflash {
-  0%  { background: var(--panel); }
-  25% { background: #2a2a10; }
-  50% { background: #3a3a05; }
-  75% { background: #2a2a10; }
-  100%{ background: var(--panel); }
-}
+    .stat-item {
+      font-size: 10px;
+      color: var(--gray);
+      white-space: nowrap;
+    }
 
-.game-wrap { position: relative; }
+    .stat-item span {
+      color: var(--white);
+    }
 
-/* ブリンクカーソル風 */
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-.seg-cur { animation: blink 0.8s steps(1) infinite; }
-</style>
+    .reset-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--gray);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 4px 7px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
 
-<div id="game">
-  <div class="stage-banner">
-    <span id="stage-label">ステージ 1 / 8</span>
-    <button class="bgm-btn" id="bgm-btn">🔇</button>
-  </div>
-  <div class="hero-status dot-box" id="hero-status">
-    <div class="hero-lv" id="hero-lv">Lv.1</div>
-    <div class="exp-wrap">
-      <div class="exp-label"><span>EXP</span><span id="exp-label-right">0 / 100</span></div>
-      <div class="exp-bar-bg"><div class="exp-bar-fill" id="exp-bar" style="width:0%"></div></div>
+    .reset-btn:hover {
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    /* バトルエリア */
+    .battle-area {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .fighters {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .fighter {
+      flex: 1;
+    }
+
+    .fighter-name {
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 6px;
+      text-shadow: 1px 1px 0 #000;
+      font-family: 'DotGothic16', monospace;
+    }
+
+    .hp-bar-bg {
+      height: 14px;
+      background: var(--darkgray);
+      border: 2px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 3px;
+    }
+
+    .hp-bar-fill {
+      height: 100%;
+      transition: width 0.3s steps(10);
+    }
+
+    .hp-label {
+      font-size: 10px;
+      color: var(--gray);
+      text-align: right;
+    }
+
+    .player-hp .hp-bar-fill {
+      background: var(--green);
+    }
+
+    .enemy-hp .hp-bar-fill {
+      background: var(--red);
+    }
+
+    .enemy-hp .hp-label {
+      text-align: left;
+    }
+
+    /* スプライト行 */
+    .sprite-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 10px;
+      min-height: 112px;
+    }
+
+    .sprite {
+      width: 112px;
+      height: 112px;
+      line-height: 1;
+      transition: transform 0.1s steps(2);
+      image-rendering: pixelated;
+      filter: drop-shadow(3px 3px 0 #000);
+    }
+
+    .sprite svg {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      shape-rendering: crispEdges;
+    }
+
+    /* コンボゲージ */
+    .combo-wrap {
+      padding: 6px 10px;
+      margin-bottom: 8px;
+    }
+
+    .combo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .combo-label {
+      font-size: 9px;
+      color: var(--gray);
+    }
+
+    .combo-count {
+      font-size: 9px;
+      color: var(--gold);
+    }
+
+    .combo-track {
+      display: flex;
+      gap: 3px;
+      height: 12px;
+    }
+
+    .combo-seg {
+      flex: 1;
+      background: var(--darkgray);
+      border: 1px solid var(--border);
+    }
+
+    .combo-seg.lit-1 {
+      background: #d4c040;
+      border-color: #f0e060;
+    }
+
+    .combo-seg.lit-2 {
+      background: #e08020;
+      border-color: #f0a030;
+    }
+
+    .combo-seg.lit-3 {
+      background: #e03030;
+      border-color: #ff5050;
+    }
+
+    .combo-seg.pulse {
+      animation: combo-pulse 0.3s steps(3);
+    }
+
+    @keyframes combo-pulse {
+      0% {
+        opacity: 0.3
+      }
+
+      50% {
+        opacity: 1
+      }
+
+      100% {
+        opacity: 0.3
+      }
+    }
+
+    .combo-lv-badge {
+      text-align: center;
+      font-size: 9px;
+      min-height: 16px;
+      color: var(--gold);
+      text-shadow: 1px 1px 0 #000;
+      margin-top: 2px;
+    }
+
+    /* タイマー */
+    .timer-wrap {
+      margin-bottom: 12px;
+    }
+
+    .timer-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--gray);
+      margin-bottom: 4px;
+    }
+
+    .timer-bar-bg {
+      height: 14px;
+      background: var(--darkgray);
+      border: 2px solid var(--border);
+      overflow: hidden;
+    }
+
+    .timer-bar-fill {
+      height: 100%;
+      transition: width 0.1s linear;
+    }
+
+    .timer-bar-fill.safe {
+      background: var(--green);
+    }
+
+    .timer-bar-fill.warn {
+      background: var(--orange);
+    }
+
+    .timer-bar-fill.danger {
+      background: var(--red);
+    }
+
+    /* 単語表示 */
+    .word-display {
+      padding: 18px 14px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .word-kanji {
+      font-size: 30px;
+      color: var(--white);
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0 #000;
+      font-family: 'DotGothic16', monospace;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .word-kana-small {
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 14px;
+      font-family: 'DotGothic16', monospace;
+    }
+
+    .kana-display {
+      font-size: 24px;
+      letter-spacing: 0.15em;
+      margin-bottom: 12px;
+      min-height: 32px;
+      font-family: 'DotGothic16', monospace;
+    }
+
+    .roman-display {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      min-height: 28px;
+      word-break: break-all;
+      line-height: 1.8;
+    }
+
+    .kana-done {
+      color: var(--green);
+    }
+
+    .kana-cur {
+      color: var(--white);
+      font-weight: 700;
+      border-bottom: 4px solid var(--accent);
+    }
+
+    .kana-pending {
+      color: #444468;
+    }
+
+    .seg-done {
+      color: var(--green);
+    }
+
+    .seg-cur {
+      color: var(--white);
+      border-bottom: 4px solid var(--gold);
+    }
+
+    .seg-pending {
+      color: #444468;
+    }
+
+    /* メッセージ */
+    .msg-bar {
+      min-height: 24px;
+      font-size: 13px;
+      color: var(--gray);
+      text-align: center;
+      margin-bottom: 6px;
+      text-shadow: 1px 1px 0 #000;
+      font-family: 'DotGothic16', monospace;
+    }
+
+    .msg-bar.good {
+      color: var(--green);
+    }
+
+    .msg-bar.bad {
+      color: var(--red);
+    }
+
+    /* オーバーレイ */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 5, 0.85);
+      border: 4px solid var(--gold);
+      box-shadow: inset 0 0 0 1px var(--accent);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 2rem;
+    }
+
+    .overlay-title {
+      font-size: 20px;
+      color: var(--gold);
+      text-shadow: 2px 2px 0 #000;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .overlay-sub {
+      font-size: 15px;
+      color: var(--white);
+      text-align: center;
+      line-height: 2.2;
+      white-space: pre-line;
+      text-shadow: 1px 1px 0 #000;
+      font-family: 'DotGothic16', monospace;
+    }
+
+    .overlay button {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      color: var(--bg);
+      background: var(--gold);
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: transform 0.05s, box-shadow 0.05s;
+    }
+
+    .overlay button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    /* diff バッジ */
+    .diff-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 3px 8px;
+      border: 1px solid;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* BGMボタン */
+    .bgm-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--gold);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 3px 6px;
+      cursor: pointer;
+      opacity: 0.8;
+      vertical-align: middle;
+      margin-left: 8px;
+      text-shadow: 1px 1px 0 #000;
+    }
+    .bgm-btn:hover {
+      opacity: 1;
+      border-color: var(--gold);
+    }
+
+    /* レベルアップフラッシュ */
+    .levelup-flash {
+      animation: lvflash 0.7s steps(4);
+    }
+
+    @keyframes lvflash {
+      0% {
+        background: var(--panel);
+      }
+
+      25% {
+        background: #2a2a10;
+      }
+
+      50% {
+        background: #3a3a05;
+      }
+
+      75% {
+        background: #2a2a10;
+      }
+
+      100% {
+        background: var(--panel);
+      }
+    }
+
+    .game-wrap {
+      position: relative;
+    }
+
+    /* ブリンクカーソル風 */
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    .seg-cur {
+      animation: blink 0.8s steps(1) infinite;
+    }
+  </style>
+
+  <div id="game">
+    <div class="stage-banner">
+      <span id="stage-label">ステージ 1 / 8</span>
+      <button class="bgm-btn" id="bgm-btn">♪OFF</button>
     </div>
-    <div class="stat-item">HP <span id="hero-maxhp-label">120</span></div>
-    <div class="stat-item">ATK <span id="hero-atk-label">5</span></div>
-    <button class="reset-btn" onclick="resetHeroData()">RESET</button>
-  </div>
-  <div class="game-wrap">
-    <div class="battle-area dot-box">
-      <div class="fighters">
-        <div class="fighter player-hp">
-          <div class="fighter-name">▶ 勇者</div>
-          <div class="hp-bar-bg"><div class="hp-bar-fill" id="player-hp-fill" style="width:100%"></div></div>
-          <div class="hp-label" id="player-hp-label">120 / 120</div>
+    <div class="hero-status dot-box" id="hero-status">
+      <div class="hero-lv" id="hero-lv">Lv.1</div>
+      <div class="exp-wrap">
+        <div class="exp-label"><span>EXP</span><span id="exp-label-right">0 / 100</span></div>
+        <div class="exp-bar-bg">
+          <div class="exp-bar-fill" id="exp-bar" style="width:0%"></div>
         </div>
-        <div class="fighter enemy-hp">
-          <div class="fighter-name" id="enemy-name" style="text-align:right"></div>
-          <div class="hp-bar-bg"><div class="hp-bar-fill" id="enemy-hp-fill" style="width:100%"></div></div>
-          <div class="hp-label" id="enemy-hp-label"></div>
+      </div>
+      <div class="stat-item">HP <span id="hero-maxhp-label">120</span></div>
+      <div class="stat-item">ATK <span id="hero-atk-label">5</span></div>
+      <button class="reset-btn" onclick="resetHeroData()">RESET</button>
+    </div>
+    <div class="game-wrap">
+      <div class="battle-area dot-box">
+        <div class="fighters">
+          <div class="fighter player-hp">
+            <div class="fighter-name">▶ 勇者</div>
+            <div class="hp-bar-bg">
+              <div class="hp-bar-fill" id="player-hp-fill" style="width:100%"></div>
+            </div>
+            <div class="hp-label" id="player-hp-label">120 / 120</div>
+          </div>
+          <div class="fighter enemy-hp">
+            <div class="fighter-name" id="enemy-name" style="text-align:right"></div>
+            <div class="hp-bar-bg">
+              <div class="hp-bar-fill" id="enemy-hp-fill" style="width:100%"></div>
+            </div>
+            <div class="hp-label" id="enemy-hp-label"></div>
+          </div>
+        </div>
+        <div class="sprite-row">
+          <div class="sprite" id="player-sprite"></div>
+          <div class="sprite" id="enemy-sprite" style="text-align:right"></div>
+        </div>
+        <div class="combo-badge" id="combo-msg"></div>
+      </div>
+      <div class="combo-wrap dot-box">
+        <div class="combo-header">
+          <span class="combo-label">⚡ COMBO</span>
+          <span class="combo-count" id="combo-count">0</span>
+        </div>
+        <div class="combo-track" id="combo-track"></div>
+        <div class="combo-lv-badge" id="combo-lv-badge"></div>
+      </div>
+      <div class="timer-wrap dot-box" style="padding:6px 10px;">
+        <div class="timer-label">
+          <span>⚡ ENEMY ATK</span>
+          <span id="timer-sec">--</span>
+        </div>
+        <div class="timer-bar-bg">
+          <div class="timer-bar-fill safe" id="timer-bar" style="width:100%"></div>
         </div>
       </div>
-      <div class="sprite-row">
-        <div class="sprite" id="player-sprite"></div>
-        <div class="sprite" id="enemy-sprite" style="text-align:right"></div>
+      <div class="word-display dot-box" id="word-display-box">
+        <div class="word-kanji" id="word-kanji">—</div>
+        <div class="word-kana-small" id="word-kana-small">—</div>
+        <div class="kana-display" id="kana-display">—</div>
+        <div class="roman-display" id="roman-display">—</div>
       </div>
-      <div class="combo-badge" id="combo-msg"></div>
-    </div>
-    <div class="timer-wrap dot-box" style="padding:6px 10px;">
-      <div class="timer-label">
-        <span>⚡ ENEMY ATK</span>
-        <span id="timer-sec">--</span>
+      <div class="msg-bar" id="msg-bar"></div>
+      <div class="overlay" id="overlay">
+        <div class="overlay-title" id="overlay-title">TYPING RPG</div>
+        <div class="overlay-sub" id="overlay-sub">全8ステージ、魔王を倒して世界を救え！</div>
+        <button id="overlay-btn">► START</button>
       </div>
-      <div class="timer-bar-bg"><div class="timer-bar-fill safe" id="timer-bar" style="width:100%"></div></div>
-    </div>
-    <div class="word-display dot-box" id="word-display-box">
-      <div class="word-kanji" id="word-kanji">—</div>
-      <div class="word-kana-small" id="word-kana-small">—</div>
-      <div class="kana-display" id="kana-display">—</div>
-      <div class="roman-display" id="roman-display">—</div>
-    </div>
-    <div class="msg-bar" id="msg-bar"></div>
-    <div class="overlay" id="overlay">
-      <div class="overlay-title" id="overlay-title">TYPING RPG</div>
-      <div class="overlay-sub" id="overlay-sub">全8ステージ、魔王を倒して世界を救え！</div>
-      <button id="overlay-btn">► START</button>
     </div>
   </div>
-</div>
 
-<script>
-// ===== ドット絵スプライト (16x16 pixel art, SVG生成) =====
-function pixelSVG(grid, palette){
-  // grid: 16x16 の文字配列（各文字がpaletteのキー、"."は透明）
-  const cell=16, size=cell*16;
-  let rects="";
-  for(let y=0;y<grid.length;y++){
-    const row=grid[y];
-    for(let x=0;x<row.length;x++){
-      const c=row[x];
-      if(c==="."||!palette[c]) continue;
-      rects+=`<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}" fill="${palette[c]}"/>`;
-    }
-  }
-  return `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
-}
-
-const P = {
-  // 勇者（剣士）
-  hero: {
-    grid:[
-"................",
-"......hhhh......",
-".....hSSSSh.....",
-".....hSeSeh.....",
-".....hSSSSh.....",
-"......hhhh......",
-".....aAAAAa.....",
-"....aAMMMMAa....",
-"...aAMMmmMMAa...",
-"...AMMmkkmMMA...",
-"...AMMmkkmMMA...",
-"....AAmkkmAA....",
-".....bb..bb.....",
-".....bb..bb.....",
-"....BBB..BBB....",
-"................"],
-    pal:{h:"#caa472",S:"#f4c89a",e:"#2a2a2a",a:"#888888",A:"#aaaaaa",M:"#3a5fc4",m:"#5a7fe4",k:"#e0c050",b:"#5a3a20",B:"#3a2a14"}
-  },
-  // ステージ1: ゾンビ
-  zombie: {
-    grid:[
-"................",
-".....gggggg.....",
-"....g6g66g6g....",
-"....g6gggg6g....",
-"....g666666g....",
-".....gggggg.....",
-".....g7gg7g.....",
-"....g7gggg7g....",
-"....g7gggg7g....",
-"....gg7777gg....",
-".....g7777g.....",
-".....g7..7g.....",
-".....g....g.....",
-".....77..77.....",
-"....555..555....",
-"................"],
-    pal:{g:"#5a8a4a","6":"#2a4a1a","7":"#3a6a2a","5":"#3a3a3a"}
-  },
-  // ステージ2: ゴブリン将軍
-  goblin: {
-    grid:[
-"................",
-"......jjjj......",
-".....jGGGGj.....",
-"....jGrGGrGj....",
-"....jGGeeGGj....",
-".....jGGGGj.....",
-"......jjjj......",
-".....mMMMMm.....",
-"....mMRRRRMm....",
-"....mMR##RMm....",
-"....mMR##RMm....",
-".....MM##MM.....",
-".....nn..nn.....",
-".....nn..nn.....",
-"....NNN..NNN....",
-"................"],
-    pal:{j:"#3a7a3a",G:"#5aaa5a",r:"#cc3333",e:"#1a1a1a",m:"#7a5a3a",M:"#9a7a4a",R:"#c03030","#":"#e0e0e0",n:"#5a4020",N:"#3a2a10"}
-  },
-  // ステージ3: オーク戦士
-  orc: {
-    grid:[
-"................",
-".....ooooo......",
-"....oOOOOOo.....",
-"....oOttttOo....",
-"....oOOeeOO.....",
-".....oOOOO......",
-"......oooo......",
-".....DDDDDD.....",
-"....DSSSSSSD....",
-"....DSffffSD....",
-"....DSffffSD....",
-".....SSffSS.....",
-".....pp..pp.....",
-".....pp..pp.....",
-"....PPP..PPP....",
-"................"],
-    pal:{o:"#4a7a3a",O:"#6a9a5a",t:"#dddddd",e:"#1a1a1a",D:"#5a4a3a",S:"#7a6a4a",f:"#888888",p:"#5a4a30",P:"#3a2a18"}
-  },
-  // ステージ4: 闇の騎士
-  darkknight: {
-    grid:[
-"................",
-"......kkkk......",
-".....kKKKKk.....",
-".....kKrrKk.....",
-".....kKKKKk.....",
-"......kkkk......",
-".....vVVVVv.....",
-"....vVAAAAVv....",
-"....vVA##AVv....",
-"....vVA##AVv....",
-".....VV##VV.....",
-".....ss..ss.....",
-".....SS..SS.....",
-".....ss..ss.....",
-"....sss..sss....",
-"................"],
-    pal:{k:"#2a2a3a",K:"#1a1a2a",r:"#cc2222",v:"#3a2a4a",V:"#4a3a5a",A:"#5a4a6a","#":"#8a3aaa",s:"#2a2a3a",S:"#1a1a2a"}
-  },
-  // ステージ5: 邪竜
-  dragon: {
-    grid:[
-"...wwwwwwww.....",
-"..wWWWWWWWWw....",
-".wWReeReeRWWw...",
-".WRRRRRRRRRWw...",
-"..WRRttttRRW....",
-"...WRRRRRRW.....",
-"....WWWWWW......",
-"...wWWWWWWw.....",
-"..wWWccccWWw....",
-"..WWWccccWWW....",
-"..WWWWWWWWWW....",
-"...wwwwwwww.....",
-".....ll..ll.....",
-".....LL..LL.....",
-"....lll..lll....",
-"................"],
-    pal:{w:"#7a2a4a",W:"#9a3a5a",R:"#aa4a5a",e:"#ffe040",t:"#dddddd",c:"#cc6a3a",l:"#5a1a2a",L:"#3a1018"}
-  },
-  // ステージ6: 堕天使
-  fallenangel: {
-    grid:[
-"..ffff..ffff....",
-".fFFFFffFFFFf...",
-"fFF..FFFF..FFf..",
-"......hhhh......",
-".....hHHHHh.....",
-".....hHeeHh.....",
-".....hHHHHh......",
-"......hhhh......",
-".....vVVVVv.....",
-"....vVAAAAVv....",
-"....vVA##AVv....",
-".....VV##VV.....",
-".....gg..gg.....",
-".....GG..GG.....",
-"....ggg..ggg....",
-"................"],
-    pal:{f:"#1a1a2a",F:"#2a2a3a",h:"#caa472",H:"#f4c89a",e:"#cc2222",v:"#3a1a4a",V:"#5a2a6a",A:"#6a3a7a","#":"#8a4a9a",g:"#2a2a3a",G:"#1a1a2a"}
-  },
-  // ステージ7: 邪神
-  evilgod: {
-    grid:[
-"...EEEEEEEE.....",
-"..EeeeeeeeeE....",
-".EeeRRRRRReeE...",
-".EeRRoooRRReE...",
-".EeRRoYoRReeE...",
-".EeRRRoRRReeE...",
-"..EeeRRReeE.....",
-"...EeeeeeE......",
-"....EEEEEE......",
-"...EEMMMMEE.....",
-"..EEMM##MMEE....",
-"...EEM##MEE.....",
-"....EEEEEE......",
-".....dd..dd.....",
-"....DDD..DDD....",
-"................"],
-    pal:{E:"#0a0a2a",e:"#1a1a4a",R:"#3a1a5a",o:"#5a2a7a",Y:"#ffe040",M:"#2a1a4a","#":"#6a2a9a",d:"#1a0a2a",D:"#0a0518"}
-  },
-  // ステージ8: 魔王ダークロス（最終）
-  demonlord: {
-    grid:[
-"..hh......hh....",
-".hHh......hHh...",
-"..hh.kkkk.hh....",
-".....kKKKk......",
-"....kKRRRKk.....",
-"....kKReRKk.....",
-"....kKRRRKk......",
-".....kKKKk......",
-".....VVVVVV.....",
-"....VVAAAAVV....",
-"....VVA##AVV....",
-".....VAA##AV.....",
-".....mm..mm.....",
-".....MM..MM.....",
-"....mmm..mmm....",
-"................"],
-    pal:{h:"#2a0a0a",H:"#4a1414",k:"#1a0a1a",K:"#2a1428",R:"#cc1a1a",e:"#ffe040",V:"#3a0a3a",A:"#5a1a5a","#":"#8a2a8a",m:"#2a0a2a",M:"#1a051a"}
-  }
-};
-
-function spriteHTML(key){ return pixelSVG(P[key].grid, P[key].pal); }
-</script>
-<script>
-// ===== Audio =====
-const AC = new (window.AudioContext || window.webkitAudioContext)();
-function resumeAC(){ if(AC.state==="suspended") AC.resume(); }
-let bgmPlaying=false, bgmTimers=[], bgmOscs=[];
-function stopBGM(){ bgmOscs.forEach(o=>{try{o.stop();}catch(e){}});bgmOscs=[]; bgmTimers.forEach(t=>clearTimeout(t));bgmTimers=[]; }
-function playBGM(){
-  stopBGM();
-  const bpm=126, b=60/bpm;
-  const bass=[110,110,123,110,110,110,98,110];
-  const mel=[0,330,0,392,0,349,330,0,0,294,0,330,0,262,294,0];
-  const loopSec=mel.length*b;
-  function sched(t0){
-    bass.forEach((f,i)=>{
-      const o=AC.createOscillator(),g=AC.createGain();
-      o.connect(g);g.connect(AC.destination);
-      o.type="triangle";o.frequency.value=f;
-      const t=t0+i*b*2;
-      g.gain.setValueAtTime(0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+b*1.8);
-      o.start(t);o.stop(t+b*2);bgmOscs.push(o);
-    });
-    mel.forEach((f,i)=>{
-      if(!f)return;
-      const o=AC.createOscillator(),g=AC.createGain();
-      o.connect(g);g.connect(AC.destination);
-      o.type="square";o.frequency.value=f;
-      const t=t0+i*b;
-      g.gain.setValueAtTime(0.06,t);g.gain.exponentialRampToValueAtTime(0.001,t+b*0.8);
-      o.start(t);o.stop(t+b);bgmOscs.push(o);
-    });
-    const tid=setTimeout(()=>{if(bgmPlaying)sched(t0+loopSec);},(loopSec-0.2)*1000);
-    bgmTimers.push(tid);
-  }
-  sched(AC.currentTime+0.05);
-}
-function toggleBGM(){
-  bgmPlaying=!bgmPlaying;
-  document.getElementById("bgm-btn").textContent=bgmPlaying?"🔊":"🔇";
-  if(bgmPlaying)playBGM();else stopBGM();
-}
-function tone(freq,type,dur,vol=0.25){
-  const o=AC.createOscillator(),g=AC.createGain();
-  o.connect(g);g.connect(AC.destination);
-  o.type=type;o.frequency.value=freq;
-  g.gain.setValueAtTime(vol,AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);
-  o.start();o.stop(AC.currentTime+dur);
-}
-const sndAttack=()=>{tone(660,"square",0.07,0.2);setTimeout(()=>tone(440,"square",0.09,0.15),55);};
-const sndMiss=()=>{tone(160,"sawtooth",0.12,0.28);setTimeout(()=>tone(110,"sawtooth",0.12,0.18),55);};
-const sndDefeat=()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,"triangle",0.12,0.25),i*65));};
-const sndClear=()=>{[523,523,523,415,523,0,659,0,784].forEach((f,i)=>setTimeout(()=>{if(f>0)tone(f,"triangle",0.22,0.35);},i*130));};
-const sndGameover=()=>{[440,349,294,220,196].forEach((f,i)=>setTimeout(()=>tone(f,"sawtooth",0.18,0.28),i*110));};
-const sndCombo=()=>{tone(880,"sine",0.07,0.18);setTimeout(()=>tone(1100,"sine",0.09,0.18),50);};
-
-// ===== ローマ字→かな 変換テーブル =====
-// キーポイント：1文字ずつキーを受け取り、バッファが確定できるかを判定する
-// テーブルは「ローマ字文字列 → かな文字列」のマップ（長い順に格納）
-const TABLE = [
-  // 4文字
-  ["ltsu","っ"],["xtsu","っ"],
-  // 3文字（拗音系）
-  ["sha","しゃ"],["shi","し"],["shu","しゅ"],["she","しぇ"],["sho","しょ"],
-  ["chi","ち"],["cha","ちゃ"],["chu","ちゅ"],["che","ちぇ"],["cho","ちょ"],
-  ["tsu","つ"],
-  ["kya","きゃ"],["kyi","きぃ"],["kyu","きゅ"],["kye","きぇ"],["kyo","きょ"],
-  ["sya","しゃ"],["syi","しぃ"],["syu","しゅ"],["sye","しぇ"],["syo","しょ"],
-  ["tya","ちゃ"],["tyi","ちぃ"],["tyu","ちゅ"],["tye","ちぇ"],["tyo","ちょ"],
-  ["cya","ちゃ"],["cyi","ちぃ"],["cyu","ちゅ"],["cye","ちぇ"],["cyo","ちょ"],
-  ["nya","にゃ"],["nyi","にぃ"],["nyu","にゅ"],["nye","にぇ"],["nyo","にょ"],
-  ["hya","ひゃ"],["hyi","ひぃ"],["hyu","ひゅ"],["hye","ひぇ"],["hyo","ひょ"],
-  ["mya","みゃ"],["myi","みぃ"],["myu","みゅ"],["mye","みぇ"],["myo","みょ"],
-  ["rya","りゃ"],["ryi","りぃ"],["ryu","りゅ"],["rye","りぇ"],["ryo","りょ"],
-  ["lya","ゃ"],["lyi","ぃ"],["lyu","ゅ"],["lye","ぇ"],["lyo","ょ"],
-  ["gya","ぎゃ"],["gyi","ぎぃ"],["gyu","ぎゅ"],["gye","ぎぇ"],["gyo","ぎょ"],
-  ["zya","じゃ"],["zyi","じぃ"],["zyu","じゅ"],["zye","じぇ"],["zyo","じょ"],
-  ["jya","じゃ"],["jyi","じぃ"],["jyu","じゅ"],["jye","じぇ"],["jyo","じょ"],
-  ["bya","びゃ"],["byi","びぃ"],["byu","びゅ"],["bye","びぇ"],["byo","びょ"],
-  ["pya","ぴゃ"],["pyi","ぴぃ"],["pyu","ぴゅ"],["pye","ぴぇ"],["pyo","ぴょ"],
-  ["dya","ぢゃ"],["dyi","ぢぃ"],["dyu","ぢゅ"],["dye","ぢぇ"],["dyo","ぢょ"],
-  ["dha","でゃ"],["dhi","でぃ"],["dhu","でゅ"],["dhe","でぇ"],["dho","でょ"],
-  ["tha","てゃ"],["thi","てぃ"],["thu","てゅ"],["the","てぇ"],["tho","てょ"],
-  ["twa","とぁ"],["twi","とぃ"],["twu","とぅ"],["twe","とぇ"],["two","とぉ"],
-  ["dwa","どぁ"],["dwi","どぃ"],["dwu","どぅ"],["dwe","どぇ"],["dwo","どぉ"],
-  ["fya","ふゃ"],["fyu","ふゅ"],["fyo","ふょ"],
-  ["fwa","ふぁ"],["fwi","ふぃ"],["fwu","ふぅ"],["fwe","ふぇ"],["fwo","ふぉ"],
-  ["vya","ゔゃ"],["vyu","ゔゅ"],["vyo","ゔょ"],
-  ["xya","ゃ"],["xyu","ゅ"],["xyo","ょ"],
-  ["ltu","っ"],["xtu","っ"],
-  ["lwa","ゎ"],["xwa","ゎ"],
-  // 2文字
-  ["ka","か"],["ki","き"],["ku","く"],["ke","け"],["ko","こ"],
-  ["sa","さ"],["si","し"],["su","す"],["se","せ"],["so","そ"],
-  ["ta","た"],["ti","ち"],["tu","つ"],["te","て"],["to","と"],
-  ["na","な"],["ni","に"],["nu","ぬ"],["ne","ね"],["no","の"],
-  ["ha","は"],["hi","ひ"],["hu","ふ"],["he","へ"],["ho","ほ"],
-  ["ma","ま"],["mi","み"],["mu","む"],["me","め"],["mo","も"],
-  ["ya","や"],["yi","い"],["yu","ゆ"],["ye","いぇ"],["yo","よ"],
-  ["ra","ら"],["ri","り"],["ru","る"],["re","れ"],["ro","ろ"],
-  ["la","ぁ"],["li","ぃ"],["lu","ぅ"],["le","ぇ"],["lo","ぉ"],
-  ["wa","わ"],["wi","ゐ"],["we","ゑ"],["wo","を"],
-  ["ga","が"],["gi","ぎ"],["gu","ぐ"],["ge","げ"],["go","ご"],
-  ["za","ざ"],["zi","じ"],["zu","ず"],["ze","ぜ"],["zo","ぞ"],
-  ["ja","じゃ"],["ji","じ"],["ju","じゅ"],["je","じぇ"],["jo","じょ"],
-  ["da","だ"],["di","ぢ"],["du","づ"],["de","で"],["do","ど"],
-  ["ba","ば"],["bi","び"],["bu","ぶ"],["be","べ"],["bo","ぼ"],
-  ["pa","ぱ"],["pi","ぴ"],["pu","ぷ"],["pe","ぺ"],["po","ぽ"],
-  ["fa","ふぁ"],["fi","ふぃ"],["fu","ふ"],["fe","ふぇ"],["fo","ふぉ"],
-  ["va","ゔぁ"],["vi","ゔぃ"],["vu","ゔ"],["ve","ゔぇ"],["vo","ゔぉ"],
-  ["ca","か"],["ci","し"],["cu","く"],["ce","せ"],["co","こ"],
-  ["qa","くぁ"],["qi","くぃ"],["qu","く"],["qe","くぇ"],["qo","くぉ"],
-  ["xa","ぁ"],["xi","ぃ"],["xu","ぅ"],["xe","ぇ"],["xo","ぉ"],
-  // 1文字
-  ["a","あ"],["i","い"],["u","う"],["e","え"],["o","お"],
-];
-
-// かな配列の最初の1文字（または拗音・っ・ん）に対応するすべての有効なローマ字表記のリストを返す
-function getValidSpellingsForKana(kana) {
-  if (!kana) return [];
-  const results = [];
-  if (kana.startsWith("っ")) {
-    results.push("ltu", "xtu", "ltsu", "xtsu");
-    // 次の文字の子音を重ねるパターン
-    const rest = kana.slice(1);
-    if (rest) {
-      const nextSpellings = getValidSpellingsForKana(rest);
-      for (const s of nextSpellings) {
-        if (s && !"aiueoyn".includes(s[0])) {
-          results.push(s[0] + s);
+  <script>
+    // ===== ドット絵スプライト (16x16 pixel art, SVG生成) =====
+    function pixelSVG(grid, palette) {
+      // grid: 16x16 の文字配列（各文字がpaletteのキー、"."は透明）
+      const cell = 16, size = cell * 16;
+      let rects = "";
+      for (let y = 0; y < grid.length; y++) {
+        const row = grid[y];
+        for (let x = 0; x < row.length; x++) {
+          const c = row[x];
+          if (c === "." || !palette[c]) continue;
+          rects += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="${palette[c]}"/>`;
         }
       }
+      return `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
     }
-  } else if (kana.startsWith("ん")) {
-    results.push("nn", "n'");
-    const rest = kana.slice(1);
-    if (rest) {
-      const nextSpellings = getValidSpellingsForKana(rest);
-      for (const s of nextSpellings) {
-        if (s && !"aiueoyn".includes(s[0])) {
-          results.push("n" + s);
+
+    const P = {
+      // 勇者（剣士）
+      hero: {
+        grid: [
+          "................",
+          "......hhhh......",
+          ".....hSSSSh.....",
+          ".....hSeSeh.....",
+          ".....hSSSSh.....",
+          "......hhhh......",
+          ".....aAAAAa.....",
+          "....aAMMMMAa....",
+          "...aAMMmmMMAa...",
+          "...AMMmkkmMMA...",
+          "...AMMmkkmMMA...",
+          "....AAmkkmAA....",
+          ".....bb..bb.....",
+          ".....bb..bb.....",
+          "....BBB..BBB....",
+          "................"],
+        pal: { h: "#caa472", S: "#f4c89a", e: "#2a2a2a", a: "#888888", A: "#aaaaaa", M: "#3a5fc4", m: "#5a7fe4", k: "#e0c050", b: "#5a3a20", B: "#3a2a14" }
+      },
+      // ステージ1: ゾンビ
+      zombie: {
+        grid: [
+          "................",
+          ".....gggggg.....",
+          "....g6g66g6g....",
+          "....g6gggg6g....",
+          "....g666666g....",
+          ".....gggggg.....",
+          ".....g7gg7g.....",
+          "....g7gggg7g....",
+          "....g7gggg7g....",
+          "....gg7777gg....",
+          ".....g7777g.....",
+          ".....g7..7g.....",
+          ".....g....g.....",
+          ".....77..77.....",
+          "....555..555....",
+          "................"],
+        pal: { g: "#5a8a4a", "6": "#2a4a1a", "7": "#3a6a2a", "5": "#3a3a3a" }
+      },
+      // ステージ2: ゴブリン将軍
+      goblin: {
+        grid: [
+          "................",
+          "......jjjj......",
+          ".....jGGGGj.....",
+          "....jGrGGrGj....",
+          "....jGGeeGGj....",
+          ".....jGGGGj.....",
+          "......jjjj......",
+          ".....mMMMMm.....",
+          "....mMRRRRMm....",
+          "....mMR##RMm....",
+          "....mMR##RMm....",
+          ".....MM##MM.....",
+          ".....nn..nn.....",
+          ".....nn..nn.....",
+          "....NNN..NNN....",
+          "................"],
+        pal: { j: "#3a7a3a", G: "#5aaa5a", r: "#cc3333", e: "#1a1a1a", m: "#7a5a3a", M: "#9a7a4a", R: "#c03030", "#": "#e0e0e0", n: "#5a4020", N: "#3a2a10" }
+      },
+      // ステージ3: オーク戦士
+      orc: {
+        grid: [
+          "................",
+          ".....ooooo......",
+          "....oOOOOOo.....",
+          "....oOttttOo....",
+          "....oOOeeOO.....",
+          ".....oOOOO......",
+          "......oooo......",
+          ".....DDDDDD.....",
+          "....DSSSSSSD....",
+          "....DSffffSD....",
+          "....DSffffSD....",
+          ".....SSffSS.....",
+          ".....pp..pp.....",
+          ".....pp..pp.....",
+          "....PPP..PPP....",
+          "................"],
+        pal: { o: "#4a7a3a", O: "#6a9a5a", t: "#dddddd", e: "#1a1a1a", D: "#5a4a3a", S: "#7a6a4a", f: "#888888", p: "#5a4a30", P: "#3a2a18" }
+      },
+      // ステージ4: 闇の騎士
+      darkknight: {
+        grid: [
+          "................",
+          "......kkkk......",
+          ".....kKKKKk.....",
+          ".....kKrrKk.....",
+          ".....kKKKKk.....",
+          "......kkkk......",
+          ".....vVVVVv.....",
+          "....vVAAAAVv....",
+          "....vVA##AVv....",
+          "....vVA##AVv....",
+          ".....VV##VV.....",
+          ".....ss..ss.....",
+          ".....SS..SS.....",
+          ".....ss..ss.....",
+          "....sss..sss....",
+          "................"],
+        pal: { k: "#2a2a3a", K: "#1a1a2a", r: "#cc2222", v: "#3a2a4a", V: "#4a3a5a", A: "#5a4a6a", "#": "#8a3aaa", s: "#2a2a3a", S: "#1a1a2a" }
+      },
+      // ステージ5: 邪竜
+      dragon: {
+        grid: [
+          "...wwwwwwww.....",
+          "..wWWWWWWWWw....",
+          ".wWReeReeRWWw...",
+          ".WRRRRRRRRRWw...",
+          "..WRRttttRRW....",
+          "...WRRRRRRW.....",
+          "....WWWWWW......",
+          "...wWWWWWWw.....",
+          "..wWWccccWWw....",
+          "..WWWccccWWW....",
+          "..WWWWWWWWWW....",
+          "...wwwwwwww.....",
+          ".....ll..ll.....",
+          ".....LL..LL.....",
+          "....lll..lll....",
+          "................"],
+        pal: { w: "#7a2a4a", W: "#9a3a5a", R: "#aa4a5a", e: "#ffe040", t: "#dddddd", c: "#cc6a3a", l: "#5a1a2a", L: "#3a1018" }
+      },
+      // ステージ6: 堕天使
+      fallenangel: {
+        grid: [
+          "..ffff..ffff....",
+          ".fFFFFffFFFFf...",
+          "fFF..FFFF..FFf..",
+          "......hhhh......",
+          ".....hHHHHh.....",
+          ".....hHeeHh.....",
+          ".....hHHHHh......",
+          "......hhhh......",
+          ".....vVVVVv.....",
+          "....vVAAAAVv....",
+          "....vVA##AVv....",
+          ".....VV##VV.....",
+          ".....gg..gg.....",
+          ".....GG..GG.....",
+          "....ggg..ggg....",
+          "................"],
+        pal: { f: "#1a1a2a", F: "#2a2a3a", h: "#caa472", H: "#f4c89a", e: "#cc2222", v: "#3a1a4a", V: "#5a2a6a", A: "#6a3a7a", "#": "#8a4a9a", g: "#2a2a3a", G: "#1a1a2a" }
+      },
+      // ステージ7: 邪神
+      evilgod: {
+        grid: [
+          "...EEEEEEEE.....",
+          "..EeeeeeeeeE....",
+          ".EeeRRRRRReeE...",
+          ".EeRRoooRRReE...",
+          ".EeRRoYoRReeE...",
+          ".EeRRRoRRReeE...",
+          "..EeeRRReeE.....",
+          "...EeeeeeE......",
+          "....EEEEEE......",
+          "...EEMMMMEE.....",
+          "..EEMM##MMEE....",
+          "...EEM##MEE.....",
+          "....EEEEEE......",
+          ".....dd..dd.....",
+          "....DDD..DDD....",
+          "................"],
+        pal: { E: "#0a0a2a", e: "#1a1a4a", R: "#3a1a5a", o: "#5a2a7a", Y: "#ffe040", M: "#2a1a4a", "#": "#6a2a9a", d: "#1a0a2a", D: "#0a0518" }
+      },
+      // ステージ8: 魔王ダークロス（最終）
+      demonlord: {
+        grid: [
+          "..hh......hh....",
+          ".hHh......hHh...",
+          "..hh.kkkk.hh....",
+          ".....kKKKk......",
+          "....kKRRRKk.....",
+          "....kKReRKk.....",
+          "....kKRRRKk......",
+          ".....kKKKk......",
+          ".....VVVVVV.....",
+          "....VVAAAAVV....",
+          "....VVA##AVV....",
+          ".....VAA##AV.....",
+          ".....mm..mm.....",
+          ".....MM..MM.....",
+          "....mmm..mmm....",
+          "................"],
+        pal: { h: "#2a0a0a", H: "#4a1414", k: "#1a0a1a", K: "#2a1428", R: "#cc1a1a", e: "#ffe040", V: "#3a0a3a", A: "#5a1a5a", "#": "#8a2a8a", m: "#2a0a2a", M: "#1a051a" }
+      }
+    };
+
+    function spriteHTML(key) { return pixelSVG(P[key].grid, P[key].pal); }
+  </script>
+  <script>
+    // ===== Audio =====
+    const AC = new (window.AudioContext || window.webkitAudioContext)();
+    function resumeAC() { if (AC.state === "suspended") AC.resume(); }
+    let bgmPlaying = false, bgmTimers = [], bgmOscs = [];
+    function stopBGM() { bgmOscs.forEach(o => { try { o.stop(); } catch (e) { } }); bgmOscs = []; bgmTimers.forEach(t => clearTimeout(t)); bgmTimers = []; }
+    function playBGM() {
+      stopBGM();
+      const bpm = 126, b = 60 / bpm;
+      const bass = [110, 110, 123, 110, 110, 110, 98, 110];
+      const mel = [0, 330, 0, 392, 0, 349, 330, 0, 0, 294, 0, 330, 0, 262, 294, 0];
+      const loopSec = mel.length * b;
+      function sched(t0) {
+        bass.forEach((f, i) => {
+          const o = AC.createOscillator(), g = AC.createGain();
+          o.connect(g); g.connect(AC.destination);
+          o.type = "triangle"; o.frequency.value = f;
+          const t = t0 + i * b * 2;
+          g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.001, t + b * 1.8);
+          o.start(t); o.stop(t + b * 2); bgmOscs.push(o);
+        });
+        mel.forEach((f, i) => {
+          if (!f) return;
+          const o = AC.createOscillator(), g = AC.createGain();
+          o.connect(g); g.connect(AC.destination);
+          o.type = "square"; o.frequency.value = f;
+          const t = t0 + i * b;
+          g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + b * 0.8);
+          o.start(t); o.stop(t + b); bgmOscs.push(o);
+        });
+        const tid = setTimeout(() => { if (bgmPlaying) sched(t0 + loopSec); }, (loopSec - 0.2) * 1000);
+        bgmTimers.push(tid);
+      }
+      sched(AC.currentTime + 0.05);
+    }
+    function toggleBGM() {
+      bgmPlaying = !bgmPlaying;
+      document.getElementById("bgm-btn").textContent = bgmPlaying ? "♪ON" : "♪OFF";
+      if (bgmPlaying) playBGM(); else stopBGM();
+    }
+    function tone(freq, type, dur, vol = 0.25) {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.connect(g); g.connect(AC.destination);
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, AC.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+      o.start(); o.stop(AC.currentTime + dur);
+    }
+    const sndAttack = () => { tone(660, "square", 0.07, 0.2); setTimeout(() => tone(440, "square", 0.09, 0.15), 55); };
+    const sndMiss = () => { tone(160, "sawtooth", 0.12, 0.28); setTimeout(() => tone(110, "sawtooth", 0.12, 0.18), 55); };
+    const sndDefeat = () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, "triangle", 0.12, 0.25), i * 65)); };
+    const sndClear = () => { [523, 523, 523, 415, 523, 0, 659, 0, 784].forEach((f, i) => setTimeout(() => { if (f > 0) tone(f, "triangle", 0.22, 0.35); }, i * 130)); };
+    const sndGameover = () => { [440, 349, 294, 220, 196].forEach((f, i) => setTimeout(() => tone(f, "sawtooth", 0.18, 0.28), i * 110)); };
+    const sndCombo = () => { tone(880, "sine", 0.07, 0.18); setTimeout(() => tone(1100, "sine", 0.09, 0.18), 50); };
+
+    // ===== ローマ字→かな 変換テーブル =====
+    // キーポイント：1文字ずつキーを受け取り、バッファが確定できるかを判定する
+    // テーブルは「ローマ字文字列 → かな文字列」のマップ（長い順に格納）
+    const TABLE = [
+      // 4文字
+      ["ltsu", "っ"], ["xtsu", "っ"],
+      // 3文字（拗音系）
+      ["sha", "しゃ"], ["shi", "し"], ["shu", "しゅ"], ["she", "しぇ"], ["sho", "しょ"],
+      ["chi", "ち"], ["cha", "ちゃ"], ["chu", "ちゅ"], ["che", "ちぇ"], ["cho", "ちょ"],
+      ["tsu", "つ"],
+      ["kya", "きゃ"], ["kyi", "きぃ"], ["kyu", "きゅ"], ["kye", "きぇ"], ["kyo", "きょ"],
+      ["sya", "しゃ"], ["syi", "しぃ"], ["syu", "しゅ"], ["sye", "しぇ"], ["syo", "しょ"],
+      ["tya", "ちゃ"], ["tyi", "ちぃ"], ["tyu", "ちゅ"], ["tye", "ちぇ"], ["tyo", "ちょ"],
+      ["cya", "ちゃ"], ["cyi", "ちぃ"], ["cyu", "ちゅ"], ["cye", "ちぇ"], ["cyo", "ちょ"],
+      ["nya", "にゃ"], ["nyi", "にぃ"], ["nyu", "にゅ"], ["nye", "にぇ"], ["nyo", "にょ"],
+      ["hya", "ひゃ"], ["hyi", "ひぃ"], ["hyu", "ひゅ"], ["hye", "ひぇ"], ["hyo", "ひょ"],
+      ["mya", "みゃ"], ["myi", "みぃ"], ["myu", "みゅ"], ["mye", "みぇ"], ["myo", "みょ"],
+      ["rya", "りゃ"], ["ryi", "りぃ"], ["ryu", "りゅ"], ["rye", "りぇ"], ["ryo", "りょ"],
+      ["lya", "ゃ"], ["lyi", "ぃ"], ["lyu", "ゅ"], ["lye", "ぇ"], ["lyo", "ょ"],
+      ["gya", "ぎゃ"], ["gyi", "ぎぃ"], ["gyu", "ぎゅ"], ["gye", "ぎぇ"], ["gyo", "ぎょ"],
+      ["zya", "じゃ"], ["zyi", "じぃ"], ["zyu", "じゅ"], ["zye", "じぇ"], ["zyo", "じょ"],
+      ["jya", "じゃ"], ["jyi", "じぃ"], ["jyu", "じゅ"], ["jye", "じぇ"], ["jyo", "じょ"],
+      ["bya", "びゃ"], ["byi", "びぃ"], ["byu", "びゅ"], ["bye", "びぇ"], ["byo", "びょ"],
+      ["pya", "ぴゃ"], ["pyi", "ぴぃ"], ["pyu", "ぴゅ"], ["pye", "ぴぇ"], ["pyo", "ぴょ"],
+      ["dya", "ぢゃ"], ["dyi", "ぢぃ"], ["dyu", "ぢゅ"], ["dye", "ぢぇ"], ["dyo", "ぢょ"],
+      ["dha", "でゃ"], ["dhi", "でぃ"], ["dhu", "でゅ"], ["dhe", "でぇ"], ["dho", "でょ"],
+      ["tha", "てゃ"], ["thi", "てぃ"], ["thu", "てゅ"], ["the", "てぇ"], ["tho", "てょ"],
+      ["twa", "とぁ"], ["twi", "とぃ"], ["twu", "とぅ"], ["twe", "とぇ"], ["two", "とぉ"],
+      ["dwa", "どぁ"], ["dwi", "どぃ"], ["dwu", "どぅ"], ["dwe", "どぇ"], ["dwo", "どぉ"],
+      ["fya", "ふゃ"], ["fyu", "ふゅ"], ["fyo", "ふょ"],
+      ["fwa", "ふぁ"], ["fwi", "ふぃ"], ["fwu", "ふぅ"], ["fwe", "ふぇ"], ["fwo", "ふぉ"],
+      ["vya", "ゔゃ"], ["vyu", "ゔゅ"], ["vyo", "ゔょ"],
+      ["xya", "ゃ"], ["xyu", "ゅ"], ["xyo", "ょ"],
+      ["ltu", "っ"], ["xtu", "っ"],
+      ["lwa", "ゎ"], ["xwa", "ゎ"],
+      // 2文字
+      ["ka", "か"], ["ki", "き"], ["ku", "く"], ["ke", "け"], ["ko", "こ"],
+      ["sa", "さ"], ["si", "し"], ["su", "す"], ["se", "せ"], ["so", "そ"],
+      ["ta", "た"], ["ti", "ち"], ["tu", "つ"], ["te", "て"], ["to", "と"],
+      ["na", "な"], ["ni", "に"], ["nu", "ぬ"], ["ne", "ね"], ["no", "の"],
+      ["ha", "は"], ["hi", "ひ"], ["hu", "ふ"], ["he", "へ"], ["ho", "ほ"],
+      ["ma", "ま"], ["mi", "み"], ["mu", "む"], ["me", "め"], ["mo", "も"],
+      ["ya", "や"], ["yi", "い"], ["yu", "ゆ"], ["ye", "いぇ"], ["yo", "よ"],
+      ["ra", "ら"], ["ri", "り"], ["ru", "る"], ["re", "れ"], ["ro", "ろ"],
+      ["la", "ぁ"], ["li", "ぃ"], ["lu", "ぅ"], ["le", "ぇ"], ["lo", "ぉ"],
+      ["wa", "わ"], ["wi", "ゐ"], ["we", "ゑ"], ["wo", "を"],
+      ["ga", "が"], ["gi", "ぎ"], ["gu", "ぐ"], ["ge", "げ"], ["go", "ご"],
+      ["za", "ざ"], ["zi", "じ"], ["zu", "ず"], ["ze", "ぜ"], ["zo", "ぞ"],
+      ["ja", "じゃ"], ["ji", "じ"], ["ju", "じゅ"], ["je", "じぇ"], ["jo", "じょ"],
+      ["da", "だ"], ["di", "ぢ"], ["du", "づ"], ["de", "で"], ["do", "ど"],
+      ["ba", "ば"], ["bi", "び"], ["bu", "ぶ"], ["be", "べ"], ["bo", "ぼ"],
+      ["pa", "ぱ"], ["pi", "ぴ"], ["pu", "ぷ"], ["pe", "ぺ"], ["po", "ぽ"],
+      ["fa", "ふぁ"], ["fi", "ふぃ"], ["fu", "ふ"], ["fe", "ふぇ"], ["fo", "ふぉ"],
+      ["va", "ゔぁ"], ["vi", "ゔぃ"], ["vu", "ゔ"], ["ve", "ゔぇ"], ["vo", "ゔぉ"],
+      ["ca", "か"], ["ci", "し"], ["cu", "く"], ["ce", "せ"], ["co", "こ"],
+      ["qa", "くぁ"], ["qi", "くぃ"], ["qu", "く"], ["qe", "くぇ"], ["qo", "くぉ"],
+      ["xa", "ぁ"], ["xi", "ぃ"], ["xu", "ぅ"], ["xe", "ぇ"], ["xo", "ぉ"],
+      // 1文字
+      ["a", "あ"], ["i", "い"], ["u", "う"], ["e", "え"], ["o", "お"],
+    ];
+
+    // かな配列の最初の1文字（または拗音・っ・ん）に対応するすべての有効なローマ字表記のリストを返す
+    function getValidSpellingsForKana(kana) {
+      if (!kana) return [];
+      const results = [];
+      if (kana.startsWith("っ")) {
+        results.push("ltu", "xtu", "ltsu", "xtsu");
+        // 次の文字の子音を重ねるパターン
+        const rest = kana.slice(1);
+        if (rest) {
+          const nextSpellings = getValidSpellingsForKana(rest);
+          for (const s of nextSpellings) {
+            if (s && !"aiueoyn".includes(s[0])) {
+              results.push(s[0] + s);
+            }
+          }
+        }
+      } else if (kana.startsWith("ん")) {
+        results.push("nn", "n'");
+        const rest = kana.slice(1);
+        if (rest) {
+          const nextSpellings = getValidSpellingsForKana(rest);
+          for (const s of nextSpellings) {
+            if (s && !"aiueoyn".includes(s[0])) {
+              results.push("n" + s);
+            }
+          }
+        } else {
+          results.push("n");
+        }
+      } else {
+        for (const [r, k] of TABLE) {
+          if (kana.startsWith(k)) {
+            results.push(r);
+          }
         }
       }
-    } else {
-      results.push("n");
+      return results;
     }
-  } else {
-    for (const [r, k] of TABLE) {
-      if (kana.startsWith(k)) {
-        results.push(r);
-      }
-    }
-  }
-  return results;
-}
 
-// 入力バッファ buf が targetKana の有効なローマ字プレフィックスであるかを判定する
-function isValidRomanPrefixForKana(buf, kana) {
-  if (buf === "") return true;
-  if (kana === "") return false;
+    // 入力バッファ buf が targetKana の有効なローマ字プレフィックスであるかを判定する
+    function isValidRomanPrefixForKana(buf, kana) {
+      if (buf === "") return true;
+      if (kana === "") return false;
 
-  // ① 「っ」の判定
-  if (kana.startsWith("っ")) {
-    const tsuSpellings = ["ltu", "xtu", "ltsu", "xtsu"];
-    for (const s of tsuSpellings) {
-      if (s.startsWith(buf)) return true;
-      if (buf.startsWith(s)) {
-        if (isValidRomanPrefixForKana(buf.slice(s.length), kana.slice(1))) {
-          return true;
-        }
-      }
-    }
-    const restKana = kana.slice(1);
-    if (restKana.length > 0) {
-      const nextSpellings = getValidSpellingsForKana(restKana);
-      for (const s of nextSpellings) {
-        const firstChar = s[0];
-        if (firstChar && !"aiueoyn".includes(firstChar)) {
-          if (buf === firstChar) return true;
-          if (buf.startsWith(firstChar)) {
-            const restBuf = buf.slice(1);
-            if (s.startsWith(restBuf) && isValidRomanPrefixForKana(restBuf, restKana)) {
+      // ① 「っ」の判定
+      if (kana.startsWith("っ")) {
+        const tsuSpellings = ["ltu", "xtu", "ltsu", "xtsu"];
+        for (const s of tsuSpellings) {
+          if (s.startsWith(buf)) return true;
+          if (buf.startsWith(s)) {
+            if (isValidRomanPrefixForKana(buf.slice(s.length), kana.slice(1))) {
               return true;
             }
           }
         }
-      }
-    }
-  }
-
-  // ② 「ん」の判定
-  if (kana.startsWith("ん")) {
-    const nSpellings = ["nn", "n'"];
-    for (const s of nSpellings) {
-      if (s.startsWith(buf)) return true;
-      if (buf.startsWith(s)) {
-        if (isValidRomanPrefixForKana(buf.slice(s.length), kana.slice(1))) {
-          return true;
-        }
-      }
-    }
-    if (buf.startsWith("n")) {
-      const restBuf = buf.slice(1);
-      if (restBuf === "") return true;
-      const restKana = kana.slice(1);
-      if (restKana.length > 0) {
-        const nextSpellings = getValidSpellingsForKana(restKana);
-        for (const s of nextSpellings) {
-          const firstChar = s[0];
-          if (firstChar && !"aiueoyn".includes(firstChar)) {
-            if (restBuf.startsWith(firstChar) || firstChar.startsWith(restBuf)) {
-              if (isValidRomanPrefixForKana(restBuf, restKana)) {
-                return true;
+        const restKana = kana.slice(1);
+        if (restKana.length > 0) {
+          const nextSpellings = getValidSpellingsForKana(restKana);
+          for (const s of nextSpellings) {
+            const firstChar = s[0];
+            if (firstChar && !"aiueoyn".includes(firstChar)) {
+              if (buf === firstChar) return true;
+              if (buf.startsWith(firstChar)) {
+                const restBuf = buf.slice(1);
+                if (s.startsWith(restBuf) && isValidRomanPrefixForKana(restBuf, restKana)) {
+                  return true;
+                }
               }
             }
           }
         }
       }
-    }
-  }
 
-  // ③ 通常のかな判定
-  for (const [r, k] of TABLE) {
-    if (kana.startsWith(k)) {
-      if (r.startsWith(buf)) return true;
-      if (buf.startsWith(r)) {
-        if (isValidRomanPrefixForKana(buf.slice(r.length), kana.slice(k.length))) {
-          return true;
+      // ② 「ん」の判定
+      if (kana.startsWith("ん")) {
+        const nSpellings = ["nn", "n'"];
+        for (const s of nSpellings) {
+          if (s.startsWith(buf)) return true;
+          if (buf.startsWith(s)) {
+            if (isValidRomanPrefixForKana(buf.slice(s.length), kana.slice(1))) {
+              return true;
+            }
+          }
+        }
+        if (buf.startsWith("n")) {
+          const restBuf = buf.slice(1);
+          if (restBuf === "") return true;
+          const restKana = kana.slice(1);
+          if (restKana.length > 0) {
+            const nextSpellings = getValidSpellingsForKana(restKana);
+            for (const s of nextSpellings) {
+              const firstChar = s[0];
+              if (firstChar && !"aiueoyn".includes(firstChar)) {
+                if (restBuf.startsWith(firstChar) || firstChar.startsWith(restBuf)) {
+                  if (isValidRomanPrefixForKana(restBuf, restKana)) {
+                    return true;
+                  }
+                }
+              }
+            }
+          }
         }
       }
-    }
-  }
 
-  return false;
-}
-
-// バッファ + 次のかな文字 を渡して、確定できるなら {kana, remaining} を返す
-// 確定できない（まだ入力待ち）なら null を返す
-// 変換不能（ミス）なら false を返す
-// buf: 現在の入力バッファ, restKana: kanaPos以降の残り全かな文字列
-// 戻り値: 確定できれば {kana, remaining}（kanaは消費したかな文字列、1〜2文字）
-//         まだ入力待ちなら null
-//         無効な入力なら false
-function tryConvert(buf, restKana){
-  if(!buf) return null;
-  if(!restKana) return false;
-
-  // ① っ
-  if(restKana.startsWith("っ")){
-    // 同子音2連で確定
-    if(buf.length>=2 && buf[0]===buf[1] && buf[0]!=="n" && /[bcdfghjklmpqrstvwxyz]/.test(buf[0])){
-      return { kana:"っ", remaining: buf.slice(1) };
-    }
-    // ltu/xtu/ltsu/xtsu で確定
-    if(buf==="ltu"||buf==="xtu"||buf==="ltsu"||buf==="xtsu"){
-      return { kana:"っ", remaining:"" };
-    }
-    // 子音1文字だけ打った状態（次に同じ子音が来るのを待っている）はWAIT
-    if(buf.length===1 && /[bcdfghjklmpqrstvwxyz]/.test(buf)){
-      return null;
-    }
-  }
-
-  // ② ん
-  if(restKana.startsWith("ん")){
-    if(buf==="nn"||buf==="n'") return { kana:"ん", remaining:"" };
-    if(buf.length>=2 && buf[0]==="n" && !"aiueoyn".includes(buf[1])){
-      // n + 子音 → ん確定、子音は次の文字として残す
-      return { kana:"ん", remaining: buf.slice(1) };
-    }
-    if(buf==="n"){
-      const rest=restKana.slice(1);
-      if(!rest) return { kana:"ん", remaining:"" };
-      return null; // 次の文字次第（nn確定 or んを確定して次へ進む）
-    }
-  }
-  if(buf==="n" && !restKana.startsWith("ん")){
-    return null; // 単独nはまだ確定しない
-  }
-
-  // ③ TABLE: restKanaの先頭（1〜2文字）に対応するローマ字表記の中で完全一致・前方一致を判定
-  //    2文字（拗音）を優先してチェック
-  const twoKana = restKana.slice(0,2);
-  const oneKana = restKana.slice(0,1);
-
-  const candidatesTwo = TABLE.filter(([r,k])=> k===twoKana);
-  const candidatesOne = TABLE.filter(([r,k])=> k===oneKana);
-  const candidates = [...candidatesTwo, ...candidatesOne];
-
-  const exact = candidates.filter(([r])=> r===buf);
-  const longer = candidates.filter(([r])=> r.length>buf.length && r.startsWith(buf));
-
-  if(exact.length>0){
-    return { kana: exact[0][1], remaining:"" };
-  }
-  if(longer.length>0){
-    return null;
-  }
-
-  return false;
-}
-
-// ===== かな→代表ローマ字（表示用） =====
-const DISP={
-  "あ":"a","い":"i","う":"u","え":"e","お":"o",
-  "か":"ka","き":"ki","く":"ku","け":"ke","こ":"ko",
-  "さ":"sa","し":"shi","す":"su","せ":"se","そ":"so",
-  "た":"ta","ち":"chi","つ":"tsu","て":"te","と":"to",
-  "な":"na","に":"ni","ぬ":"nu","ね":"ne","の":"no",
-  "は":"ha","ひ":"hi","ふ":"fu","へ":"he","ほ":"ho",
-  "ま":"ma","み":"mi","む":"mu","め":"me","も":"mo",
-  "や":"ya","ゆ":"yu","よ":"yo",
-  "ら":"ra","り":"ri","る":"ru","れ":"re","ろ":"ro",
-  "わ":"wa","ゐ":"wi","ゑ":"we","を":"wo","ん":"n",
-  "が":"ga","ぎ":"gi","ぐ":"gu","げ":"ge","ご":"go",
-  "ざ":"za","じ":"ji","ず":"zu","ぜ":"ze","ぞ":"zo",
-  "だ":"da","ぢ":"di","づ":"du","で":"de","ど":"do",
-  "ば":"ba","び":"bi","ぶ":"bu","べ":"be","ぼ":"bo",
-  "ぱ":"pa","ぴ":"pi","ぷ":"pu","ぺ":"pe","ぽ":"po",
-  "ぁ":"xa","ぃ":"xi","ぅ":"xu","ぇ":"xe","ぉ":"xo","ゔ":"vu",
-  "きゃ":"kya","きぃ":"kyi","きゅ":"kyu","きぇ":"kye","きょ":"kyo",
-  "しゃ":"sha","しぃ":"syi","しゅ":"shu","しぇ":"she","しょ":"sho",
-  "ちゃ":"cha","ちぃ":"tyi","ちゅ":"chu","ちぇ":"che","ちょ":"cho",
-  "にゃ":"nya","にぃ":"nyi","にゅ":"nyu","にぇ":"nye","にょ":"nyo",
-  "ひゃ":"hya","ひぃ":"hyi","ひゅ":"hyu","ひぇ":"hye","ひょ":"hyo",
-  "みゃ":"mya","みぃ":"myi","みゅ":"myu","みぇ":"mye","みょ":"myo",
-  "りゃ":"rya","りぃ":"ryi","りゅ":"ryu","りぇ":"rye","りょ":"ryo",
-  "ぎゃ":"gya","ぎぃ":"gyi","ぎゅ":"gyu","ぎぇ":"gye","ぎょ":"gyo",
-  "じゃ":"ja","じぃ":"zyi","じゅ":"ju","じぇ":"je","じょ":"jo",
-  "ぢゃ":"dya","ぢぃ":"dyi","ぢゅ":"dyu","ぢぇ":"dye","ぢょ":"dyo",
-  "びゃ":"bya","びぃ":"byi","びゅ":"byu","びぇ":"bye","びょ":"byo",
-  "ぴゃ":"pya","ぴぃ":"pyi","ぴゅ":"pyu","ぴぇ":"pye","ぴょ":"pyo",
-  "でぃ":"dhi","でゅ":"dhu","てぃ":"thi","てゅ":"thu",
-  "ふぁ":"fa","ふぃ":"fi","ふぅ":"fwu","ふぇ":"fe","ふぉ":"fo",
-  "ゔぁ":"va","ゔぃ":"vi","ゔぇ":"ve","ゔぉ":"vo",
-  "ゃ":"xya","ゅ":"xyu","ょ":"xyo","っ":"xt","ゎ":"xwa",
-};
-function kanaToRoman(kana, limit = kana.length){
-  let r="",i=0;
-  while(i<limit){
-    if(kana[i]==="っ"){
-      const two=kana.slice(i+1,i+3),one=kana[i+1];
-      const p=DISP[two]||DISP[one]||"x";
-      r+=p[0]; i++; continue;
-    }
-    if(kana[i]==="ん"){
-      const nx=kana[i+1];
-      if(nx){
-        const two=kana.slice(i+1,i+3);
-        const nxR=DISP[two]||DISP[nx]||"";
-        r+=(nxR&&"aiueoyn".includes(nxR[0]))?"nn":"n";
-      } else r+="n";
-      i++; continue;
-    }
-    const two=kana.slice(i,i+2);
-    if(i+1 < limit && DISP[two]){r+=DISP[two];i+=2;continue;}
-    if(DISP[kana[i]]){r+=DISP[kana[i]];i++;continue;}
-    r+=kana[i];i++;
-  }
-  return r;
-}
-
-// ===== ワードデータ =====
-const W1=[
-  {kanji:"火山",kana:"かざん"},{kanji:"海賊",kana:"かいぞく"},{kanji:"星空",kana:"ほしぞら"},
-  {kanji:"嵐",kana:"あらし"},{kanji:"氷河",kana:"ひょうが"},{kanji:"毒霧",kana:"どくぎり"},
-  {kanji:"暗闇",kana:"くらやみ"},{kanji:"閃光",kana:"せんこう"},{kanji:"爆発",kana:"ばくはつ"},
-  {kanji:"呪縛",kana:"じゅばく"},{kanji:"魔界",kana:"まかい"},{kanji:"幻影",kana:"げんえい"},
-  {kanji:"剣聖",kana:"けんせい"},{kanji:"雷雲",kana:"らいうん"},{kanji:"鬼火",kana:"おにび"},
-  {kanji:"竜巻",kana:"たつまき"},{kanji:"大蛇",kana:"おろち"},{kanji:"死霊",kana:"しりょう"},
-  {kanji:"迷宮",kana:"めいきゅう"},{kanji:"洞窟",kana:"どうくつ"},{kanji:"毒蛇",kana:"どくじゃ"},
-  {kanji:"骨剣",kana:"こっけん"},{kanji:"怨霊",kana:"おんりょう"},{kanji:"魔石",kana:"ませき"},
-  {kanji:"腐敗",kana:"ふはい"},{kanji:"感染",kana:"かんせん"},{kanji:"疫病",kana:"えきびょう"},
-  {kanji:"瘴気",kana:"しょうき"},{kanji:"呪詛",kana:"じゅそ"},{kanji:"邪気",kana:"じゃき"},
-  {kanji:"蜘蛛の巣",kana:"くものす"},{kanji:"沼地",kana:"ぬまち"},{kanji:"廃墟",kana:"はいきょ"},
-  {kanji:"骸骨",kana:"がいこつ"},{kanji:"墓場",kana:"はかば"},{kanji:"棺桶",kana:"かんおけ"},
-  {kanji:"呪いの指輪",kana:"のろいのゆびわ"},{kanji:"幽霊船",kana:"ゆうれいせん"},
-  {kanji:"霧の森",kana:"きりのもり"},{kanji:"朽ちた城",kana:"くちたしろ"},
-];
-const W2=[
-  {kanji:"暗黒騎士",kana:"あんこくきし"},{kanji:"炎の精霊",kana:"ほのおのせいれい"},
-  {kanji:"毒の沼",kana:"どくのぬま"},{kanji:"骸骨兵",kana:"がいこつへい"},
-  {kanji:"魔法陣",kana:"まほうじん"},{kanji:"死の呪い",kana:"しのろい"},
-  {kanji:"冥界の門",kana:"めいかいのもん"},{kanji:"炎竜",kana:"えんりゅう"},
-  {kanji:"氷の刃",kana:"こおりのやいば"},{kanji:"雷の鎖",kana:"かみなりのくさり"},
-  {kanji:"血の池",kana:"ちのいけ"},{kanji:"業火",kana:"ごうか"},
-  {kanji:"虚無の海",kana:"きょむのうみ"},{kanji:"闇の使者",kana:"やみのししゃ"},
-  {kanji:"呪われた剣",kana:"のろわれたけん"},{kanji:"千年の眠り",kana:"せんねんのねむり"},
-  {kanji:"魔族の王",kana:"まぞくのおう"},{kanji:"鉄の城壁",kana:"てつのじょうへき"},
-  {kanji:"血の契約",kana:"ちのけいやく"},{kanji:"影の軍団",kana:"かげのぐんだん"},
-  {kanji:"魔女の呪い",kana:"まじょののろい"},{kanji:"禁断の果実",kana:"きんだんのかじつ"},
-  {kanji:"闇の盟約",kana:"やみのめいやく"},{kanji:"怨嗟の叫び",kana:"えんさのさけび"},
-  {kanji:"腐食の毒",kana:"ふしょくのどく"},{kanji:"堕落の天使",kana:"だらくのてんし"},
-  {kanji:"黒魔術師",kana:"くろまじゅつし"},{kanji:"死神の鎌",kana:"しにがみのかま"},
-  {kanji:"砕かれた魂",kana:"くだかれたたましい"},{kanji:"幻惑の霧",kana:"げんわくのきり"},
-  {kanji:"血塗れの剣",kana:"ちまみれのけん"},{kanji:"夜叉の爪",kana:"やしゃのつめ"},
-  {kanji:"魔の森",kana:"まのもり"},{kanji:"砂漠の亡者",kana:"さばくのもうじゃ"},
-  {kanji:"骸の山",kana:"むくろのやま"},{kanji:"蛇神の怒り",kana:"じゃしんのいかり"},
-  {kanji:"死者の軍勢",kana:"ししゃのぐんぜい"},{kanji:"魔力の奔流",kana:"まりょくのほんりゅう"},
-  {kanji:"呪術師の罠",kana:"じゅじゅつしのわな"},{kanji:"不浄の地",kana:"ふじょうのち"},
-];
-const W3=[
-  {kanji:"黒竜騎士団",kana:"こくりゅうきしだん"},{kanji:"奈落の底",kana:"ならくのそこ"},
-  {kanji:"絶望の剣士",kana:"ぜつぼうのけんし"},{kanji:"虚無の支配者",kana:"きょむのしはいしゃ"},
-  {kanji:"血染めの戦場",kana:"ちぞめのせんじょう"},{kanji:"魂の封印",kana:"たましいのふういん"},
-  {kanji:"不死の竜王",kana:"ふしのりゅうおう"},{kanji:"禁断の魔術",kana:"きんだんのまじゅつ"},
-  {kanji:"闇の神殿",kana:"やみのしんでん"},{kanji:"悪霊の巣窟",kana:"あくりょうのそうくつ"},
-  {kanji:"時を止める魔法",kana:"ときをとめるまほう"},{kanji:"世界を砕く力",kana:"せかいをくだくちから"},
-  {kanji:"永久凍土の城",kana:"えいきゅうとうどのしろ"},{kanji:"黄泉の国の扉",kana:"よみのくにのとびら"},
-  {kanji:"怨念の化身",kana:"おんねんのけしん"},{kanji:"狂気の錬金術師",kana:"きょうきのれんきんじゅつし"},
-  {kanji:"呪いの迷宮",kana:"のろいのめいきゅう"},{kanji:"魔剣士の咆哮",kana:"まけんしのほうこう"},
-  {kanji:"闘争の化身",kana:"とうそうのけしん"},{kanji:"滅びの予言",kana:"ほろびのよげん"},
-  {kanji:"魔王の右腕",kana:"まおうのみぎうで"},{kanji:"邪竜の鱗",kana:"じゃりゅうのうろこ"},
-  {kanji:"灼熱の地獄",kana:"しゃくねつのじごく"},{kanji:"暗黒の力",kana:"あんこくのちから"},
-  {kanji:"鮮血の誓い",kana:"せんけつのちかい"},{kanji:"魂喰らいの剣",kana:"たましいくらいのけん"},
-  {kanji:"終末の審判",kana:"しゅうまつのしんぱん"},{kanji:"業火の海",kana:"ごうかのうみ"},
-  {kanji:"死の踊り",kana:"しのおどり"},{kanji:"魔物の巣窟",kana:"まものそうくつ"},
-  {kanji:"闇に染まる者",kana:"やみにそまるもの"},{kanji:"地獄の使者",kana:"じごくのししゃ"},
-  {kanji:"冥界の炎",kana:"めいかいのほのお"},{kanji:"夢魔の宴",kana:"むまのうたげ"},
-  {kanji:"憎悪の結晶",kana:"ぞうおのけっしょう"},{kanji:"恐怖の化神",kana:"きょうふのかしん"},
-  {kanji:"魔の烙印",kana:"まのらくいん"},{kanji:"闇の化身",kana:"やみのけしん"},
-  {kanji:"修羅の道",kana:"しゅらのみち"},{kanji:"怪物の王",kana:"かいぶつのおう"},
-];
-const W4=[
-  {kanji:"鉄壁の要塞",kana:"てっぺきのようさい"},{kanji:"漆黒の翼",kana:"しっこくのつばさ"},
-  {kanji:"断末魔の叫び",kana:"だんまつまのさけび"},{kanji:"失われた伝説",kana:"うしなわれたでんせつ"},
-  {kanji:"煉獄の炎",kana:"れんごくのほのお"},{kanji:"呪縛された魂",kana:"じゅばくされたたましい"},
-  {kanji:"滅びの咆哮",kana:"ほろびのほうこう"},{kanji:"深淵の魔神",kana:"しんえんのまじん"},
-  {kanji:"黒き死の宣告",kana:"くろきしのせんこく"},{kanji:"堕天使の羽",kana:"だてんしのはね"},
-  {kanji:"邪神の降臨",kana:"じゃしんのこうりん"},{kanji:"刹那の剣閃",kana:"せつなのけんせん"},
-  {kanji:"古代神の怒り",kana:"こだいしんのいかり"},{kanji:"漆黒の魔王城",kana:"しっこくのまおうじょう"},
-  {kanji:"封じられた禁術",kana:"ふうじられたきんじゅつ"},{kanji:"星を砕く一撃",kana:"ほしをくだくいちげき"},
-  {kanji:"奈落の咆哮",kana:"ならくのほうこう"},{kanji:"滅亡の烙印",kana:"めつぼうのらくいん"},
-  {kanji:"黄泉の怨霊",kana:"よみのおんりょう"},{kanji:"暗黒の化身",kana:"あんこくのけしん"},
-  {kanji:"神罰の雷撃",kana:"しんばつのらいげき"},{kanji:"魔王の鉄槌",kana:"まおうのてっつい"},
-  {kanji:"永遠の呪縛",kana:"えいえんのじゅばく"},{kanji:"血塗れの覇者",kana:"ちまみれのはしゃ"},
-  {kanji:"滅びの翼",kana:"ほろびのつばさ"},{kanji:"蒼穹を砕く剣",kana:"そうきゅうをくだくけん"},
-  {kanji:"忘却の彼方",kana:"ぼうきゃくのかなた"},{kanji:"地獄の番犬",kana:"じごくのばんけん"},
-  {kanji:"魔界の覇王",kana:"まかいのはおう"},{kanji:"断罪の炎",kana:"だんざいのほのお"},
-  {kanji:"深淵の咆哮",kana:"しんえんのほうこう"},{kanji:"悪夢の結晶",kana:"あくむのけっしょう"},
-  {kanji:"消えぬ怨嗟",kana:"きえぬえんさ"},{kanji:"暗黒神の使徒",kana:"あんこくしんのしと"},
-  {kanji:"星降る深淵",kana:"ほしふるしんえん"},{kanji:"魔封波",kana:"まふうは"},
-  {kanji:"業の連鎖",kana:"ごうのれんさ"},{kanji:"冥府の鎖",kana:"めいふのくさり"},
-  {kanji:"絶望の烙印",kana:"ぜつぼうのらくいん"},{kanji:"闇の裁定者",kana:"やみのさいていしゃ"},
-];
-const W5=[
-  {kanji:"滅びし古代王国",kana:"ほろびしこだいおうこく"},{kanji:"永劫の暗黒回廊",kana:"えいごうのあんこくかいろう"},
-  {kanji:"血塗られた歴史",kana:"ちぬられたれきし"},{kanji:"終焉の刻",kana:"しゅうえんのとき"},
-  {kanji:"業火に包まれた城",kana:"ごうかにつつまれたしろ"},{kanji:"悪夢を喰らう者",kana:"あくむをくらうもの"},
-  {kanji:"黄昏の決戦",kana:"たそがれのけっせん"},{kanji:"呪われた宝剣",kana:"のろわれたほうけん"},
-  {kanji:"冥府の番人",kana:"めいふのばんにん"},{kanji:"天地を揺るがす咆哮",kana:"てんちをゆるがすほうこう"},
-  {kanji:"虚空を切り裂く剣",kana:"こくうをきりさくけん"},{kanji:"六百年の孤独",kana:"ろっぴゃくねんのこどく"},
-  {kanji:"世界樹の守護者",kana:"せかいじゅのしゅごしゃ"},{kanji:"憎悪が生んだ怪物",kana:"ぞうおがうんだかいぶつ"},
-  {kanji:"魔石に封じられた神",kana:"ましゃくにふうじられたかみ"},{kanji:"魔王の右腕",kana:"まおうのみぎうで"},
-  {kanji:"煉獄に堕ちた勇者",kana:"れんごくにおちたゆうしゃ"},{kanji:"刻まれた滅びの詩",kana:"きざまれたほろびのうた"},
-  {kanji:"闇を支配する王",kana:"やみをしはいするおう"},{kanji:"天罰の雷霆",kana:"てんばつのらいてい"},
-  {kanji:"星々が泣く夜",kana:"ほしぼしがなくよる"},{kanji:"魂を刈る死神",kana:"たましいをかるしにがみ"},
-  {kanji:"魔域の支配者",kana:"まいきのしはいしゃ"},{kanji:"断末魔の怨嗟",kana:"だんまつまのえんさ"},
-  {kanji:"呪われた血族",kana:"のろわれたけつぞく"},{kanji:"崩壊する世界",kana:"ほうかいするせかい"},
-  {kanji:"忘れられた神話",kana:"わすれられたしんわ"},{kanji:"深淵に眠る邪神",kana:"しんえんにねむるじゃしん"},
-  {kanji:"怨霊の大群",kana:"おんりょうのたいぐん"},{kanji:"漆黒の審判者",kana:"しっこくのしんぱんしゃ"},
-  {kanji:"永遠の地獄",kana:"えいえんのじごく"},{kanji:"血の誓約",kana:"ちのせいやく"},
-  {kanji:"闇に堕ちた聖者",kana:"やみにおちたせいじゃ"},{kanji:"滅びの連鎖",kana:"ほろびのれんさ"},
-  {kanji:"魔界の扉",kana:"まかいのとびら"},{kanji:"絶望が生む力",kana:"ぜつぼうがうむちから"},
-  {kanji:"千年の業",kana:"せんねんのごう"},{kanji:"冥界の王座",kana:"めいかいのおうざ"},
-  {kanji:"滅びを告げる星",kana:"ほろびをつげるほし"},{kanji:"終わりの始まり",kana:"おわりのはじまり"},
-];
-const W6=[
-  {kanji:"煉獄に堕ちた聖騎士",kana:"れんごくにおちたせいきし"},
-  {kanji:"千年に一度の大厄災",kana:"せんねんにいちどのだいやくさい"},
-  {kanji:"奈落の底で眠る神",kana:"ならくのそこでねむるかみ"},
-  {kanji:"魔王の血を引く英雄",kana:"まおうのちをひくえいゆう"},
-  {kanji:"絶対零度の断罪者",kana:"ぜったいれいどのだんざいしゃ"},
-  {kanji:"星々に刻まれた予言",kana:"ほしぼしにきざまれたよげん"},
-  {kanji:"魂を喰らう深淵の竜",kana:"たましいをくらうしんえんのりゅう"},
-  {kanji:"終わりなき呪いの連鎖",kana:"おわりなきのろいのれんさ"},
-  {kanji:"永遠に続く虚無の回廊",kana:"えいえんにつづくきょむのかいろう"},
-  {kanji:"滅亡の使者が告げる審判",kana:"めつぼうのししゃがつげるしんぱん"},
-  {kanji:"六千年の眠りから醒めた邪神",kana:"ろくせんねんのねむりからさめたじゃしん"},
-  {kanji:"死を超えた者への祝福",kana:"しをこえたものへのしゅくふく"},
-  {kanji:"世界の終わりを告げる鐘",kana:"せかいのおわりをつげるかね"},
-  {kanji:"血に染まった勝利の旗",kana:"ちにそまったしょうりのはた"},
-  {kanji:"暗黒神に捧げる供物",kana:"あんこくしんにささげるくもつ"},
-  {kanji:"滅びし者たちの怨嗟",kana:"ほろびしものたちのえんさ"},
-  {kanji:"虚空から降り注ぐ呪い",kana:"こくうからふりそそぐのろい"},
-  {kanji:"永劫の闇に囚われし魂",kana:"えいごうのやみにとらわれしたましい"},
-  {kanji:"神をも砕く悪魔の拳",kana:"かみをもくだくあくまのこぶし"},
-  {kanji:"黄金の剣が砕ける日",kana:"おうごんのけんがくだけるひ"},
-  {kanji:"全てを飲み込む深淵の渦",kana:"すべてをのみこむしんえんのうず"},
-  {kanji:"地獄の炎が世界を包む",kana:"じごくのほのおがせかいをつつむ"},
-  {kanji:"星が墜ちる夜の呪い",kana:"ほしがおちるよるののろい"},
-  {kanji:"忘却の彼方に消えた神々",kana:"ぼうきゃくのかなたにきえたかみがみ"},
-  {kanji:"血と涙で書かれた歴史",kana:"ちとなみだでかかれたれきし"},
-  {kanji:"千の怨念が宿る魔剣",kana:"せんのおんねんがやどるまけん"},
-  {kanji:"終末を歌う悪魔の詩",kana:"しゅうまつをうたうあくまのうた"},
-  {kanji:"魂が燃え尽きる瞬間",kana:"たましいがもえつきるしゅんかん"},
-  {kanji:"神話の時代の滅びの炎",kana:"しんわのじだいのほろびのほのお"},
-  {kanji:"冥界の王が放つ死の光",kana:"めいかいのおうがはなつしのひかり"},
-  {kanji:"この地に生きる者の宿命",kana:"このちにいきるもののしゅくめい"},
-  {kanji:"滅びの言葉が空に響く",kana:"ほろびのことばがそらにひびく"},
-  {kanji:"魔王が纏う闇の衣",kana:"まおうがまとうやみのころも"},
-  {kanji:"絶望が結晶した呪いの石",kana:"ぜつぼうがけっしょうしたのろいのいし"},
-  {kanji:"破滅を望む者への加護",kana:"はめつをのぞむもののかご"},
-  {kanji:"暗黒に呑まれた英雄の剣",kana:"あんこくにのまれたえいゆうのけん"},
-  {kanji:"千年前に散った魂の叫び",kana:"せんねんまえにちったたましいのさけび"},
-  {kanji:"復讐の炎が大地を焼く",kana:"ふくしゅうのほのおがだいちをやく"},
-  {kanji:"魔王の城が崩れ落ちる日",kana:"まおうのしろがくずれおちるひ"},
-  {kanji:"深淵に刻まれた名もなき怨念",kana:"しんえんにきざまれたなもなきおんねん"},
-];
-const W7=[
-  {kanji:"宇宙の果てに眠る混沌",kana:"うちゅうのはてにねむるこんとん"},
-  {kanji:"時空を超えた滅びの呪文",kana:"じくうをこえたほろびのじゅもん"},
-  {kanji:"黒き翼を持つ終焉の天使",kana:"くろきつばさをもつしゅうえんのてんし"},
-  {kanji:"この世の全てを灰にする炎",kana:"このよのすべてをはいにするほのお"},
-  {kanji:"千の怨念が結晶した呪剣",kana:"せんのおんねんがけっしょうしたじゅけん"},
-  {kanji:"世界を喰らう者の咆哮",kana:"せかいをくらうもののほうこう"},
-  {kanji:"深淵より来たりし滅びの神",kana:"しんえんよりきたりしほろびのかみ"},
-  {kanji:"永劫回帰する暗黒の意志",kana:"えいごうかいきするあんこくのいし"},
-  {kanji:"魂を砕く万物創造の言葉",kana:"たましいをくだくばんぶつそうぞうのことば"},
-  {kanji:"死と再生を繰り返す不滅の竜",kana:"しとさいせいをくりかえすふめつのりゅう"},
-  {kanji:"星の海に沈む失われた神々",kana:"ほしのうみにしずむうしなわれたかみがみ"},
-  {kanji:"全知全能の魔王が紡ぐ終末の詩",kana:"ぜんちぜんのうのまおうがつむぐしゅうまつのうた"},
-  {kanji:"宇宙を統べる者の末裔",kana:"うちゅうをすべるもののまつえい"},
-  {kanji:"時の狭間に消えた英雄の魂",kana:"ときのはざまにきえたえいゆうのたましい"},
-  {kanji:"全ての星が燃え尽きる夜",kana:"すべてのほしがもえつきるよる"},
-  {kanji:"神話を超えた絶望の深淵",kana:"しんわをこえたぜつぼうのしんえん"},
-  {kanji:"宇宙の法則を歪める魔力",kana:"うちゅうのほうそくをゆがめるまりょく"},
-  {kanji:"死すら恐れぬ最強の戦士",kana:"しすらおそれぬさいきょうのせんし"},
-  {kanji:"虚無が生んだ最後の神",kana:"きょむがうんだいごのかみ"},
-  {kanji:"時間を喰らう無限の迷宮",kana:"じかんをくらうむげんのめいきゅう"},
-  {kanji:"全宇宙の怨念が宿る魔剣",kana:"ぜんうちゅうのおんねんがやどるまけん"},
-  {kanji:"億年の孤独を生きた神",kana:"おくねんのこどくをいきたかみ"},
-  {kanji:"滅びを望む者が生んだ悪意",kana:"ほろびをのぞむものがうんだあくい"},
-  {kanji:"時の果てで輝く絶望の星",kana:"ときのはてできらめくぜつぼうのほし"},
-  {kanji:"宇宙の涙が凝固した宝石",kana:"うちゅうのなみだがぎょうこしたほうせき"},
-  {kanji:"無限の命が宿る呪われた器",kana:"むげんのいのちがやどるのろわれたうつわ"},
-  {kanji:"全ての始まりを知る者の嘆き",kana:"すべてのはじまりをしるもののなげき"},
-  {kanji:"神々の戦争が生んだ傷跡",kana:"かみがみのせんそうがうんだきずあと"},
-  {kanji:"宇宙が誕生した瞬間の闇",kana:"うちゅうがたんじょうしたしゅんかんのやみ"},
-  {kanji:"全ての光を飲み込む深淵",kana:"すべてのひかりをのみこむしんえん"},
-  {kanji:"永遠の時を生きた孤独な神",kana:"えいえんのときをいきたこどくなかみ"},
-  {kanji:"星が産声を上げる前の沈黙",kana:"ほしがうぶごえをあげるまえのちんもく"},
-  {kanji:"世界の果てに立つ最後の勇者",kana:"せかいのはてにたつさいごのゆうしゃ"},
-  {kanji:"全宇宙を震わせる滅びの言葉",kana:"ぜんうちゅうをふるわせるほろびのことば"},
-  {kanji:"深淵の神が目覚める時",kana:"しんえんのかみがめざめるとき"},
-  {kanji:"失われた時代の英雄の伝説",kana:"うしなわれたじだいのえいゆうのでんせつ"},
-  {kanji:"宇宙の終焉を告げる使者",kana:"うちゅうのしゅうえんをつげるししゃ"},
-  {kanji:"億千万の魂が眠る深淵の海",kana:"おくせんまんのたましいがねむるしんえんのうみ"},
-];
-const W8=[
-  {kanji:"絶対なる破滅の支配者",kana:"ぜったいなるはめつのしはいしゃ"},
-  {kanji:"宇宙の法則を書き換える者",kana:"うちゅうのほうそくをかきかえるもの"},
-  {kanji:"全ての命を喰らう虚無の化身",kana:"すべてのいのちをくらうきょむのけしん"},
-  {kanji:"千年の業火が生んだ究極の悪",kana:"せんねんのごうかがうんだきゅうきょくのあく"},
-  {kanji:"時の始まりから存在する滅びの神",kana:"ときのはじまりからそんざいするほろびのかみ"},
-  {kanji:"星々を砕き宇宙を統べる暗黒神",kana:"ほしぼしをくだきうちゅうをすべるあんこくしん"},
-  {kanji:"魂の絶叫が宿る終末の魔剣",kana:"たましいのぜっきょうがやどるしゅうまつのまけん"},
-  {kanji:"全知全能の破壊神が下す最後の審判",kana:"ぜんちぜんのうのはかいしんがくだすさいごのしんぱん"},
-  {kanji:"世界の果てで輝く滅亡の星",kana:"せかいのはてできらめくめつぼうのほし"},
-  {kanji:"永遠に消えることのない絶望の炎",kana:"えいえんにきえることのないぜつぼうのほのお"},
-  {kanji:"六千年の怨念が凝縮した滅びの魔王",kana:"ろくせんねんのおんねんがぎょうしゅくしたほろびのまおう"},
-  {kanji:"死と絶望が生み出した終焉の化身",kana:"しとぜつぼうがうみだしたしゅうえんのけしん"},
-  {kanji:"全宇宙の命運を握る暗黒の意志",kana:"ぜんうちゅうのめいうんをにぎるあんこくのいし"},
-  {kanji:"神話の時代から続く呪いの系譜",kana:"しんわのじだいからつづくのろいのけいふ"},
-  {kanji:"虚無より産まれし絶対なる破壊者",kana:"きょむよりうまれしぜったいなるはかいしゃ"},
-  {kanji:"宇宙が誕生する前から存在する神",kana:"うちゅうがたんじょうするまえからそんざいするかみ"},
-  {kanji:"全ての時間軸を支配する邪悪の化身",kana:"すべてのじかんじくをしはいするじゃあくのけしん"},
-  {kanji:"滅びの連鎖が生んだ最終の魔王",kana:"ほろびのれんさがうんださいしゅうのまおう"},
-  {kanji:"星の海を渡る破壊の嵐",kana:"ほしのうみをわたるはかいのあらし"},
-  {kanji:"永劫の闇に君臨する邪神",kana:"えいごうのやみにくんりんするじゃしん"},
-  {kanji:"全ての光を消し去る絶対の闇",kana:"すべてのひかりをけしさるぜったいのやみ"},
-  {kanji:"宇宙の果てに立つ絶望の化身",kana:"うちゅうのはてにたつぜつぼうのけしん"},
-  {kanji:"無限の怨念が形となった魔王",kana:"むげんのおんねんがかたちとなったまおう"},
-  {kanji:"時空の彼方から来たりし終末の神",kana:"じくうのかなたからきたりしゅうまつのかみ"},
-  {kanji:"全ての創造と破壊を司る唯一神",kana:"すべてのそうぞうとはかいをつかさどるゆいいつしん"},
-  {kanji:"億年の孤独が生んだ最後の悪意",kana:"おくねんのこどくがうんださいごのあくい"},
-  {kanji:"宇宙を滅ぼすために生まれた存在",kana:"うちゅうをほろぼすためにうまれたそんざい"},
-  {kanji:"全ての神話が恐れる最終の魔王",kana:"すべてのしんわがおそれるさいしゅうのまおう"},
-  {kanji:"深淵の果てに眠る全知の悪神",kana:"しんえんのはてにねむるぜんちのあくしん"},
-  {kanji:"万物を無に帰す絶対破壊の権化",kana:"ばんぶつをむにきすぜったいはかいのごんげ"},
-  {kanji:"この宇宙の全ての命の終わりを告げる者",kana:"このうちゅうのすべてのいのちのおわりをつげるもの"},
-  {kanji:"全ての記憶と存在を消し去る漆黒の意志",kana:"すべてのきおくとそんざいをけしさるしっこくのいし"},
-];
-
-const STAGES=[
-  {name:"ゾンビ",        spriteKey:"zombie",      maxHp:40, wordPool:W1,count:6, timerSec:12.0, timerDmg:8,  diffLabel:"Lv.1",diffColor:"#4CAF82"},
-  {name:"ゴブリン将軍",  spriteKey:"goblin",       maxHp:60, wordPool:W2,count:7, timerSec:11.0, timerDmg:10, diffLabel:"Lv.2",diffColor:"#5B9BD5"},
-  {name:"オーク戦士",    spriteKey:"orc",          maxHp:80, wordPool:W3,count:8, timerSec:10.0, timerDmg:12, diffLabel:"Lv.3",diffColor:"#8A7FC7"},
-  {name:"闇の騎士",      spriteKey:"darkknight",   maxHp:100,wordPool:W4,count:8, timerSec:9.0,  timerDmg:14, diffLabel:"Lv.4",diffColor:"#C07840"},
-  {name:"邪竜",          spriteKey:"dragon",       maxHp:120,wordPool:W5,count:9, timerSec:8.0,  timerDmg:16, diffLabel:"Lv.5",diffColor:"#C84B4B"},
-  {name:"堕天使",        spriteKey:"fallenangel",  maxHp:140,wordPool:W6,count:9, timerSec:7.0,  timerDmg:18, diffLabel:"Lv.6",diffColor:"#A030A0"},
-  {name:"邪神",          spriteKey:"evilgod",      maxHp:170,wordPool:W7,count:10,timerSec:6.0,  timerDmg:20, diffLabel:"Lv.7",diffColor:"#303090"},
-  {name:"魔王ダークロス",spriteKey:"demonlord",    maxHp:200,wordPool:W8,count:10,timerSec:5.0,  timerDmg:25, diffLabel:"FINAL",diffColor:"#8B0000"},
-];
-
-// ===== レベル・経験値システム =====
-// Lv1基礎HP=120, レベルごとに+15HP
-const BASE_HP = 120;
-const HP_PER_LV = 15;
-// レベルアップに必要な累計EXP: Lv1→2=100, Lv2→3=150, ... (×1.4倍ずつ)
-function expToNext(lv){ return Math.floor(100 * Math.pow(1.4, lv-1)); }
-function calcMaxHp(lv){ return BASE_HP + (lv-1)*HP_PER_LV; }
-// レベルによる固定攻撃ダメージ: Lv1=5, レベルごとに+1
-function calcAttackDmg(lv){ return 4 + lv; }
-
-// ストレージキー
-const SAVE_KEY = "typing_rpg_hero";
-
-let hero = { lv:1, exp:0 }; // 永続データ
-
-// window.storage (アーティファクト環境) があればそちらを優先、
-// なければ localStorage にフォールバックして単体HTMLでも保存できるようにする
-async function loadHero(){
-  try {
-    if(window.storage && typeof window.storage.get==="function"){
-      const r = await window.storage.get(SAVE_KEY);
-      if(r && r.value){
-        const d = JSON.parse(r.value);
-        hero = { lv: d.lv||1, exp: d.exp||0 };
+      // ③ 通常のかな判定
+      for (const [r, k] of TABLE) {
+        if (kana.startsWith(k)) {
+          if (r.startsWith(buf)) return true;
+          if (buf.startsWith(r)) {
+            if (isValidRomanPrefixForKana(buf.slice(r.length), kana.slice(k.length))) {
+              return true;
+            }
+          }
+        }
       }
-    } else {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if(raw){
-        const d = JSON.parse(raw);
-        hero = { lv: d.lv||1, exp: d.exp||0 };
+
+      return false;
+    }
+
+    // バッファ + 次のかな文字 を渡して、確定できるなら {kana, remaining} を返す
+    // 確定できない（まだ入力待ち）なら null を返す
+    // 変換不能（ミス）なら false を返す
+    // buf: 現在の入力バッファ, restKana: kanaPos以降の残り全かな文字列
+    // 戻り値: 確定できれば {kana, remaining}（kanaは消費したかな文字列、1〜2文字）
+    //         まだ入力待ちなら null
+    //         無効な入力なら false
+    function tryConvert(buf, restKana) {
+      if (!buf) return null;
+      if (!restKana) return false;
+
+      // ① っ
+      if (restKana.startsWith("っ")) {
+        // 同子音2連で確定
+        if (buf.length >= 2 && buf[0] === buf[1] && buf[0] !== "n" && /[bcdfghjklmpqrstvwxyz]/.test(buf[0])) {
+          return { kana: "っ", remaining: buf.slice(1) };
+        }
+        // ltu/xtu/ltsu/xtsu で確定
+        if (buf === "ltu" || buf === "xtu" || buf === "ltsu" || buf === "xtsu") {
+          return { kana: "っ", remaining: "" };
+        }
+        // 子音1文字だけ打った状態（次に同じ子音が来るのを待っている）はWAIT
+        if (buf.length === 1 && /[bcdfghjklmpqrstvwxyz]/.test(buf)) {
+          return null;
+        }
+      }
+
+      // ② ん
+      if (restKana.startsWith("ん")) {
+        if (buf === "nn" || buf === "n'") return { kana: "ん", remaining: "" };
+        if (buf.length >= 2 && buf[0] === "n" && !"aiueoyn".includes(buf[1])) {
+          // n + 子音 → ん確定、子音は次の文字として残す
+          return { kana: "ん", remaining: buf.slice(1) };
+        }
+        if (buf === "n") {
+          const rest = restKana.slice(1);
+          if (!rest) return { kana: "ん", remaining: "" };
+          return null; // 次の文字次第（nn確定 or んを確定して次へ進む）
+        }
+      }
+      if (buf === "n" && !restKana.startsWith("ん")) {
+        return null; // 単独nはまだ確定しない
+      }
+
+      // ③ TABLE: restKanaの先頭（1〜2文字）に対応するローマ字表記の中で完全一致・前方一致を判定
+      //    2文字（拗音）を優先してチェック
+      const twoKana = restKana.slice(0, 2);
+      const oneKana = restKana.slice(0, 1);
+
+      const candidatesTwo = TABLE.filter(([r, k]) => k === twoKana);
+      const candidatesOne = TABLE.filter(([r, k]) => k === oneKana);
+      const candidates = [...candidatesTwo, ...candidatesOne];
+
+      const exact = candidates.filter(([r]) => r === buf);
+      const longer = candidates.filter(([r]) => r.length > buf.length && r.startsWith(buf));
+
+      if (exact.length > 0) {
+        return { kana: exact[0][1], remaining: "" };
+      }
+      if (longer.length > 0) {
+        return null;
+      }
+
+      return false;
+    }
+
+    // ===== かな→代表ローマ字（表示用） =====
+    const DISP = {
+      "あ": "a", "い": "i", "う": "u", "え": "e", "お": "o",
+      "か": "ka", "き": "ki", "く": "ku", "け": "ke", "こ": "ko",
+      "さ": "sa", "し": "shi", "す": "su", "せ": "se", "そ": "so",
+      "た": "ta", "ち": "chi", "つ": "tsu", "て": "te", "と": "to",
+      "な": "na", "に": "ni", "ぬ": "nu", "ね": "ne", "の": "no",
+      "は": "ha", "ひ": "hi", "ふ": "fu", "へ": "he", "ほ": "ho",
+      "ま": "ma", "み": "mi", "む": "mu", "め": "me", "も": "mo",
+      "や": "ya", "ゆ": "yu", "よ": "yo",
+      "ら": "ra", "り": "ri", "る": "ru", "れ": "re", "ろ": "ro",
+      "わ": "wa", "ゐ": "wi", "ゑ": "we", "を": "wo", "ん": "n",
+      "が": "ga", "ぎ": "gi", "ぐ": "gu", "げ": "ge", "ご": "go",
+      "ざ": "za", "じ": "ji", "ず": "zu", "ぜ": "ze", "ぞ": "zo",
+      "だ": "da", "ぢ": "di", "づ": "du", "で": "de", "ど": "do",
+      "ば": "ba", "び": "bi", "ぶ": "bu", "べ": "be", "ぼ": "bo",
+      "ぱ": "pa", "ぴ": "pi", "ぷ": "pu", "ぺ": "pe", "ぽ": "po",
+      "ぁ": "xa", "ぃ": "xi", "ぅ": "xu", "ぇ": "xe", "ぉ": "xo", "ゔ": "vu",
+      "きゃ": "kya", "きぃ": "kyi", "きゅ": "kyu", "きぇ": "kye", "きょ": "kyo",
+      "しゃ": "sha", "しぃ": "syi", "しゅ": "shu", "しぇ": "she", "しょ": "sho",
+      "ちゃ": "cha", "ちぃ": "tyi", "ちゅ": "chu", "ちぇ": "che", "ちょ": "cho",
+      "にゃ": "nya", "にぃ": "nyi", "にゅ": "nyu", "にぇ": "nye", "にょ": "nyo",
+      "ひゃ": "hya", "ひぃ": "hyi", "ひゅ": "hyu", "ひぇ": "hye", "ひょ": "hyo",
+      "みゃ": "mya", "みぃ": "myi", "みゅ": "myu", "みぇ": "mye", "みょ": "myo",
+      "りゃ": "rya", "りぃ": "ryi", "りゅ": "ryu", "りぇ": "rye", "りょ": "ryo",
+      "ぎゃ": "gya", "ぎぃ": "gyi", "ぎゅ": "gyu", "ぎぇ": "gye", "ぎょ": "gyo",
+      "じゃ": "ja", "じぃ": "zyi", "じゅ": "ju", "じぇ": "je", "じょ": "jo",
+      "ぢゃ": "dya", "ぢぃ": "dyi", "ぢゅ": "dyu", "ぢぇ": "dye", "ぢょ": "dyo",
+      "びゃ": "bya", "びぃ": "byi", "びゅ": "byu", "びぇ": "bye", "びょ": "byo",
+      "ぴゃ": "pya", "ぴぃ": "pyi", "ぴゅ": "pyu", "ぴぇ": "pye", "ぴょ": "pyo",
+      "でぃ": "dhi", "でゅ": "dhu", "てぃ": "thi", "てゅ": "thu",
+      "ふぁ": "fa", "ふぃ": "fi", "ふぅ": "fwu", "ふぇ": "fe", "ふぉ": "fo",
+      "ゔぁ": "va", "ゔぃ": "vi", "ゔぇ": "ve", "ゔぉ": "vo",
+      "ゃ": "xya", "ゅ": "xyu", "ょ": "xyo", "っ": "xt", "ゎ": "xwa",
+    };
+    function kanaToRoman(kana, limit = kana.length) {
+      let r = "", i = 0;
+      while (i < limit) {
+        if (kana[i] === "っ") {
+          const two = kana.slice(i + 1, i + 3), one = kana[i + 1];
+          const p = DISP[two] || DISP[one] || "x";
+          r += p[0]; i++; continue;
+        }
+        if (kana[i] === "ん") {
+          const nx = kana[i + 1];
+          if (nx) {
+            const two = kana.slice(i + 1, i + 3);
+            const nxR = DISP[two] || DISP[nx] || "";
+            r += (nxR && "aiueoyn".includes(nxR[0])) ? "nn" : "n";
+          } else r += "n";
+          i++; continue;
+        }
+        const two = kana.slice(i, i + 2);
+        if (i + 1 < limit && DISP[two]) { r += DISP[two]; i += 2; continue; }
+        if (DISP[kana[i]]) { r += DISP[kana[i]]; i++; continue; }
+        r += kana[i]; i++;
+      }
+      return r;
+    }
+
+    // ===== ワードデータ =====
+    const W1 = [
+      { kanji: "火山", kana: "かざん" }, { kanji: "海賊", kana: "かいぞく" }, { kanji: "星空", kana: "ほしぞら" },
+      { kanji: "嵐", kana: "あらし" }, { kanji: "氷河", kana: "ひょうが" }, { kanji: "毒霧", kana: "どくぎり" },
+      { kanji: "暗闇", kana: "くらやみ" }, { kanji: "閃光", kana: "せんこう" }, { kanji: "爆発", kana: "ばくはつ" },
+      { kanji: "呪縛", kana: "じゅばく" }, { kanji: "魔界", kana: "まかい" }, { kanji: "幻影", kana: "げんえい" },
+      { kanji: "剣聖", kana: "けんせい" }, { kanji: "雷雲", kana: "らいうん" }, { kanji: "鬼火", kana: "おにび" },
+      { kanji: "竜巻", kana: "たつまき" }, { kanji: "大蛇", kana: "おろち" }, { kanji: "死霊", kana: "しりょう" },
+      { kanji: "迷宮", kana: "めいきゅう" }, { kanji: "洞窟", kana: "どうくつ" }, { kanji: "毒蛇", kana: "どくじゃ" },
+      { kanji: "骨剣", kana: "こっけん" }, { kanji: "怨霊", kana: "おんりょう" }, { kanji: "魔石", kana: "ませき" },
+      { kanji: "腐敗", kana: "ふはい" }, { kanji: "感染", kana: "かんせん" }, { kanji: "疫病", kana: "えきびょう" },
+      { kanji: "瘴気", kana: "しょうき" }, { kanji: "呪詛", kana: "じゅそ" }, { kanji: "邪気", kana: "じゃき" },
+      { kanji: "蜘蛛の巣", kana: "くものす" }, { kanji: "沼地", kana: "ぬまち" }, { kanji: "廃墟", kana: "はいきょ" },
+      { kanji: "骸骨", kana: "がいこつ" }, { kanji: "墓場", kana: "はかば" }, { kanji: "棺桶", kana: "かんおけ" },
+      { kanji: "呪いの指輪", kana: "のろいのゆびわ" }, { kanji: "幽霊船", kana: "ゆうれいせん" },
+      { kanji: "霧の森", kana: "きりのもり" }, { kanji: "朽ちた城", kana: "くちたしろ" },
+    ];
+    const W2 = [
+      { kanji: "暗黒騎士", kana: "あんこくきし" }, { kanji: "炎の精霊", kana: "ほのおのせいれい" },
+      { kanji: "毒の沼", kana: "どくのぬま" }, { kanji: "骸骨兵", kana: "がいこつへい" },
+      { kanji: "魔法陣", kana: "まほうじん" }, { kanji: "死の呪い", kana: "しのろい" },
+      { kanji: "冥界の門", kana: "めいかいのもん" }, { kanji: "炎竜", kana: "えんりゅう" },
+      { kanji: "氷の刃", kana: "こおりのやいば" }, { kanji: "雷の鎖", kana: "かみなりのくさり" },
+      { kanji: "血の池", kana: "ちのいけ" }, { kanji: "業火", kana: "ごうか" },
+      { kanji: "虚無の海", kana: "きょむのうみ" }, { kanji: "闇の使者", kana: "やみのししゃ" },
+      { kanji: "呪われた剣", kana: "のろわれたけん" }, { kanji: "千年の眠り", kana: "せんねんのねむり" },
+      { kanji: "魔族の王", kana: "まぞくのおう" }, { kanji: "鉄の城壁", kana: "てつのじょうへき" },
+      { kanji: "血の契約", kana: "ちのけいやく" }, { kanji: "影の軍団", kana: "かげのぐんだん" },
+      { kanji: "魔女の呪い", kana: "まじょののろい" }, { kanji: "禁断の果実", kana: "きんだんのかじつ" },
+      { kanji: "闇の盟約", kana: "やみのめいやく" }, { kanji: "怨嗟の叫び", kana: "えんさのさけび" },
+      { kanji: "腐食の毒", kana: "ふしょくのどく" }, { kanji: "堕落の天使", kana: "だらくのてんし" },
+      { kanji: "黒魔術師", kana: "くろまじゅつし" }, { kanji: "死神の鎌", kana: "しにがみのかま" },
+      { kanji: "砕かれた魂", kana: "くだかれたたましい" }, { kanji: "幻惑の霧", kana: "げんわくのきり" },
+      { kanji: "血塗れの剣", kana: "ちまみれのけん" }, { kanji: "夜叉の爪", kana: "やしゃのつめ" },
+      { kanji: "魔の森", kana: "まのもり" }, { kanji: "砂漠の亡者", kana: "さばくのもうじゃ" },
+      { kanji: "骸の山", kana: "むくろのやま" }, { kanji: "蛇神の怒り", kana: "じゃしんのいかり" },
+      { kanji: "死者の軍勢", kana: "ししゃのぐんぜい" }, { kanji: "魔力の奔流", kana: "まりょくのほんりゅう" },
+      { kanji: "呪術師の罠", kana: "じゅじゅつしのわな" }, { kanji: "不浄の地", kana: "ふじょうのち" },
+    ];
+    const W3 = [
+      { kanji: "黒竜騎士団", kana: "こくりゅうきしだん" }, { kanji: "奈落の底", kana: "ならくのそこ" },
+      { kanji: "絶望の剣士", kana: "ぜつぼうのけんし" }, { kanji: "虚無の支配者", kana: "きょむのしはいしゃ" },
+      { kanji: "血染めの戦場", kana: "ちぞめのせんじょう" }, { kanji: "魂の封印", kana: "たましいのふういん" },
+      { kanji: "不死の竜王", kana: "ふしのりゅうおう" }, { kanji: "禁断の魔術", kana: "きんだんのまじゅつ" },
+      { kanji: "闇の神殿", kana: "やみのしんでん" }, { kanji: "悪霊の巣窟", kana: "あくりょうのそうくつ" },
+      { kanji: "時を止める魔法", kana: "ときをとめるまほう" }, { kanji: "世界を砕く力", kana: "せかいをくだくちから" },
+      { kanji: "永久凍土の城", kana: "えいきゅうとうどのしろ" }, { kanji: "黄泉の国の扉", kana: "よみのくにのとびら" },
+      { kanji: "怨念の化身", kana: "おんねんのけしん" }, { kanji: "狂気の錬金術師", kana: "きょうきのれんきんじゅつし" },
+      { kanji: "呪いの迷宮", kana: "のろいのめいきゅう" }, { kanji: "魔剣士の咆哮", kana: "まけんしのほうこう" },
+      { kanji: "闘争の化身", kana: "とうそうのけしん" }, { kanji: "滅びの予言", kana: "ほろびのよげん" },
+      { kanji: "魔王の右腕", kana: "まおうのみぎうで" }, { kanji: "邪竜の鱗", kana: "じゃりゅうのうろこ" },
+      { kanji: "灼熱の地獄", kana: "しゃくねつのじごく" }, { kanji: "暗黒の力", kana: "あんこくのちから" },
+      { kanji: "鮮血の誓い", kana: "せんけつのちかい" }, { kanji: "魂喰らいの剣", kana: "たましいくらいのけん" },
+      { kanji: "終末の審判", kana: "しゅうまつのしんぱん" }, { kanji: "業火の海", kana: "ごうかのうみ" },
+      { kanji: "死の踊り", kana: "しのおどり" }, { kanji: "魔物の巣窟", kana: "まものそうくつ" },
+      { kanji: "闇に染まる者", kana: "やみにそまるもの" }, { kanji: "地獄の使者", kana: "じごくのししゃ" },
+      { kanji: "冥界の炎", kana: "めいかいのほのお" }, { kanji: "夢魔の宴", kana: "むまのうたげ" },
+      { kanji: "憎悪の結晶", kana: "ぞうおのけっしょう" }, { kanji: "恐怖の化神", kana: "きょうふのかしん" },
+      { kanji: "魔の烙印", kana: "まのらくいん" }, { kanji: "闇の化身", kana: "やみのけしん" },
+      { kanji: "修羅の道", kana: "しゅらのみち" }, { kanji: "怪物の王", kana: "かいぶつのおう" },
+    ];
+    const W4 = [
+      { kanji: "鉄壁の要塞", kana: "てっぺきのようさい" }, { kanji: "漆黒の翼", kana: "しっこくのつばさ" },
+      { kanji: "断末魔の叫び", kana: "だんまつまのさけび" }, { kanji: "失われた伝説", kana: "うしなわれたでんせつ" },
+      { kanji: "煉獄の炎", kana: "れんごくのほのお" }, { kanji: "呪縛された魂", kana: "じゅばくされたたましい" },
+      { kanji: "滅びの咆哮", kana: "ほろびのほうこう" }, { kanji: "深淵の魔神", kana: "しんえんのまじん" },
+      { kanji: "黒き死の宣告", kana: "くろきしのせんこく" }, { kanji: "堕天使の羽", kana: "だてんしのはね" },
+      { kanji: "邪神の降臨", kana: "じゃしんのこうりん" }, { kanji: "刹那の剣閃", kana: "せつなのけんせん" },
+      { kanji: "古代神の怒り", kana: "こだいしんのいかり" }, { kanji: "漆黒の魔王城", kana: "しっこくのまおうじょう" },
+      { kanji: "封じられた禁術", kana: "ふうじられたきんじゅつ" }, { kanji: "星を砕く一撃", kana: "ほしをくだくいちげき" },
+      { kanji: "奈落の咆哮", kana: "ならくのほうこう" }, { kanji: "滅亡の烙印", kana: "めつぼうのらくいん" },
+      { kanji: "黄泉の怨霊", kana: "よみのおんりょう" }, { kanji: "暗黒の化身", kana: "あんこくのけしん" },
+      { kanji: "神罰の雷撃", kana: "しんばつのらいげき" }, { kanji: "魔王の鉄槌", kana: "まおうのてっつい" },
+      { kanji: "永遠の呪縛", kana: "えいえんのじゅばく" }, { kanji: "血塗れの覇者", kana: "ちまみれのはしゃ" },
+      { kanji: "滅びの翼", kana: "ほろびのつばさ" }, { kanji: "蒼穹を砕く剣", kana: "そうきゅうをくだくけん" },
+      { kanji: "忘却の彼方", kana: "ぼうきゃくのかなた" }, { kanji: "地獄の番犬", kana: "じごくのばんけん" },
+      { kanji: "魔界の覇王", kana: "まかいのはおう" }, { kanji: "断罪の炎", kana: "だんざいのほのお" },
+      { kanji: "深淵の咆哮", kana: "しんえんのほうこう" }, { kanji: "悪夢の結晶", kana: "あくむのけっしょう" },
+      { kanji: "消えぬ怨嗟", kana: "きえぬえんさ" }, { kanji: "暗黒神の使徒", kana: "あんこくしんのしと" },
+      { kanji: "星降る深淵", kana: "ほしふるしんえん" }, { kanji: "魔封波", kana: "まふうは" },
+      { kanji: "業の連鎖", kana: "ごうのれんさ" }, { kanji: "冥府の鎖", kana: "めいふのくさり" },
+      { kanji: "絶望の烙印", kana: "ぜつぼうのらくいん" }, { kanji: "闇の裁定者", kana: "やみのさいていしゃ" },
+    ];
+    const W5 = [
+      { kanji: "滅びし古代王国", kana: "ほろびしこだいおうこく" }, { kanji: "永劫の暗黒回廊", kana: "えいごうのあんこくかいろう" },
+      { kanji: "血塗られた歴史", kana: "ちぬられたれきし" }, { kanji: "終焉の刻", kana: "しゅうえんのとき" },
+      { kanji: "業火に包まれた城", kana: "ごうかにつつまれたしろ" }, { kanji: "悪夢を喰らう者", kana: "あくむをくらうもの" },
+      { kanji: "黄昏の決戦", kana: "たそがれのけっせん" }, { kanji: "呪われた宝剣", kana: "のろわれたほうけん" },
+      { kanji: "冥府の番人", kana: "めいふのばんにん" }, { kanji: "天地を揺るがす咆哮", kana: "てんちをゆるがすほうこう" },
+      { kanji: "虚空を切り裂く剣", kana: "こくうをきりさくけん" }, { kanji: "六百年の孤独", kana: "ろっぴゃくねんのこどく" },
+      { kanji: "世界樹の守護者", kana: "せかいじゅのしゅごしゃ" }, { kanji: "憎悪が生んだ怪物", kana: "ぞうおがうんだかいぶつ" },
+      { kanji: "魔石に封じられた神", kana: "ましゃくにふうじられたかみ" }, { kanji: "魔王の右腕", kana: "まおうのみぎうで" },
+      { kanji: "煉獄に堕ちた勇者", kana: "れんごくにおちたゆうしゃ" }, { kanji: "刻まれた滅びの詩", kana: "きざまれたほろびのうた" },
+      { kanji: "闇を支配する王", kana: "やみをしはいするおう" }, { kanji: "天罰の雷霆", kana: "てんばつのらいてい" },
+      { kanji: "星々が泣く夜", kana: "ほしぼしがなくよる" }, { kanji: "魂を刈る死神", kana: "たましいをかるしにがみ" },
+      { kanji: "魔域の支配者", kana: "まいきのしはいしゃ" }, { kanji: "断末魔の怨嗟", kana: "だんまつまのえんさ" },
+      { kanji: "呪われた血族", kana: "のろわれたけつぞく" }, { kanji: "崩壊する世界", kana: "ほうかいするせかい" },
+      { kanji: "忘れられた神話", kana: "わすれられたしんわ" }, { kanji: "深淵に眠る邪神", kana: "しんえんにねむるじゃしん" },
+      { kanji: "怨霊の大群", kana: "おんりょうのたいぐん" }, { kanji: "漆黒の審判者", kana: "しっこくのしんぱんしゃ" },
+      { kanji: "永遠の地獄", kana: "えいえんのじごく" }, { kanji: "血の誓約", kana: "ちのせいやく" },
+      { kanji: "闇に堕ちた聖者", kana: "やみにおちたせいじゃ" }, { kanji: "滅びの連鎖", kana: "ほろびのれんさ" },
+      { kanji: "魔界の扉", kana: "まかいのとびら" }, { kanji: "絶望が生む力", kana: "ぜつぼうがうむちから" },
+      { kanji: "千年の業", kana: "せんねんのごう" }, { kanji: "冥界の王座", kana: "めいかいのおうざ" },
+      { kanji: "滅びを告げる星", kana: "ほろびをつげるほし" }, { kanji: "終わりの始まり", kana: "おわりのはじまり" },
+    ];
+    const W6 = [
+      { kanji: "煉獄に堕ちた聖騎士", kana: "れんごくにおちたせいきし" },
+      { kanji: "千年に一度の大厄災", kana: "せんねんにいちどのだいやくさい" },
+      { kanji: "奈落の底で眠る神", kana: "ならくのそこでねむるかみ" },
+      { kanji: "魔王の血を引く英雄", kana: "まおうのちをひくえいゆう" },
+      { kanji: "絶対零度の断罪者", kana: "ぜったいれいどのだんざいしゃ" },
+      { kanji: "星々に刻まれた予言", kana: "ほしぼしにきざまれたよげん" },
+      { kanji: "魂を喰らう深淵の竜", kana: "たましいをくらうしんえんのりゅう" },
+      { kanji: "終わりなき呪いの連鎖", kana: "おわりなきのろいのれんさ" },
+      { kanji: "永遠に続く虚無の回廊", kana: "えいえんにつづくきょむのかいろう" },
+      { kanji: "滅亡の使者が告げる審判", kana: "めつぼうのししゃがつげるしんぱん" },
+      { kanji: "六千年の眠りから醒めた邪神", kana: "ろくせんねんのねむりからさめたじゃしん" },
+      { kanji: "死を超えた者への祝福", kana: "しをこえたものへのしゅくふく" },
+      { kanji: "世界の終わりを告げる鐘", kana: "せかいのおわりをつげるかね" },
+      { kanji: "血に染まった勝利の旗", kana: "ちにそまったしょうりのはた" },
+      { kanji: "暗黒神に捧げる供物", kana: "あんこくしんにささげるくもつ" },
+      { kanji: "滅びし者たちの怨嗟", kana: "ほろびしものたちのえんさ" },
+      { kanji: "虚空から降り注ぐ呪い", kana: "こくうからふりそそぐのろい" },
+      { kanji: "永劫の闇に囚われし魂", kana: "えいごうのやみにとらわれしたましい" },
+      { kanji: "神をも砕く悪魔の拳", kana: "かみをもくだくあくまのこぶし" },
+      { kanji: "黄金の剣が砕ける日", kana: "おうごんのけんがくだけるひ" },
+      { kanji: "全てを飲み込む深淵の渦", kana: "すべてをのみこむしんえんのうず" },
+      { kanji: "地獄の炎が世界を包む", kana: "じごくのほのおがせかいをつつむ" },
+      { kanji: "星が墜ちる夜の呪い", kana: "ほしがおちるよるののろい" },
+      { kanji: "忘却の彼方に消えた神々", kana: "ぼうきゃくのかなたにきえたかみがみ" },
+      { kanji: "血と涙で書かれた歴史", kana: "ちとなみだでかかれたれきし" },
+      { kanji: "千の怨念が宿る魔剣", kana: "せんのおんねんがやどるまけん" },
+      { kanji: "終末を歌う悪魔の詩", kana: "しゅうまつをうたうあくまのうた" },
+      { kanji: "魂が燃え尽きる瞬間", kana: "たましいがもえつきるしゅんかん" },
+      { kanji: "神話の時代の滅びの炎", kana: "しんわのじだいのほろびのほのお" },
+      { kanji: "冥界の王が放つ死の光", kana: "めいかいのおうがはなつしのひかり" },
+      { kanji: "この地に生きる者の宿命", kana: "このちにいきるもののしゅくめい" },
+      { kanji: "滅びの言葉が空に響く", kana: "ほろびのことばがそらにひびく" },
+      { kanji: "魔王が纏う闇の衣", kana: "まおうがまとうやみのころも" },
+      { kanji: "絶望が結晶した呪いの石", kana: "ぜつぼうがけっしょうしたのろいのいし" },
+      { kanji: "破滅を望む者への加護", kana: "はめつをのぞむもののかご" },
+      { kanji: "暗黒に呑まれた英雄の剣", kana: "あんこくにのまれたえいゆうのけん" },
+      { kanji: "千年前に散った魂の叫び", kana: "せんねんまえにちったたましいのさけび" },
+      { kanji: "復讐の炎が大地を焼く", kana: "ふくしゅうのほのおがだいちをやく" },
+      { kanji: "魔王の城が崩れ落ちる日", kana: "まおうのしろがくずれおちるひ" },
+      { kanji: "深淵に刻まれた名もなき怨念", kana: "しんえんにきざまれたなもなきおんねん" },
+    ];
+    const W7 = [
+      { kanji: "宇宙の果てに眠る混沌", kana: "うちゅうのはてにねむるこんとん" },
+      { kanji: "時空を超えた滅びの呪文", kana: "じくうをこえたほろびのじゅもん" },
+      { kanji: "黒き翼を持つ終焉の天使", kana: "くろきつばさをもつしゅうえんのてんし" },
+      { kanji: "この世の全てを灰にする炎", kana: "このよのすべてをはいにするほのお" },
+      { kanji: "千の怨念が結晶した呪剣", kana: "せんのおんねんがけっしょうしたじゅけん" },
+      { kanji: "世界を喰らう者の咆哮", kana: "せかいをくらうもののほうこう" },
+      { kanji: "深淵より来たりし滅びの神", kana: "しんえんよりきたりしほろびのかみ" },
+      { kanji: "永劫回帰する暗黒の意志", kana: "えいごうかいきするあんこくのいし" },
+      { kanji: "魂を砕く万物創造の言葉", kana: "たましいをくだくばんぶつそうぞうのことば" },
+      { kanji: "死と再生を繰り返す不滅の竜", kana: "しとさいせいをくりかえすふめつのりゅう" },
+      { kanji: "星の海に沈む失われた神々", kana: "ほしのうみにしずむうしなわれたかみがみ" },
+      { kanji: "全知全能の魔王が紡ぐ終末の詩", kana: "ぜんちぜんのうのまおうがつむぐしゅうまつのうた" },
+      { kanji: "宇宙を統べる者の末裔", kana: "うちゅうをすべるもののまつえい" },
+      { kanji: "時の狭間に消えた英雄の魂", kana: "ときのはざまにきえたえいゆうのたましい" },
+      { kanji: "全ての星が燃え尽きる夜", kana: "すべてのほしがもえつきるよる" },
+      { kanji: "神話を超えた絶望の深淵", kana: "しんわをこえたぜつぼうのしんえん" },
+      { kanji: "宇宙の法則を歪める魔力", kana: "うちゅうのほうそくをゆがめるまりょく" },
+      { kanji: "死すら恐れぬ最強の戦士", kana: "しすらおそれぬさいきょうのせんし" },
+      { kanji: "虚無が生んだ最後の神", kana: "きょむがうんだいごのかみ" },
+      { kanji: "時間を喰らう無限の迷宮", kana: "じかんをくらうむげんのめいきゅう" },
+      { kanji: "全宇宙の怨念が宿る魔剣", kana: "ぜんうちゅうのおんねんがやどるまけん" },
+      { kanji: "億年の孤独を生きた神", kana: "おくねんのこどくをいきたかみ" },
+      { kanji: "滅びを望む者が生んだ悪意", kana: "ほろびをのぞむものがうんだあくい" },
+      { kanji: "時の果てで輝く絶望の星", kana: "ときのはてできらめくぜつぼうのほし" },
+      { kanji: "宇宙の涙が凝固した宝石", kana: "うちゅうのなみだがぎょうこしたほうせき" },
+      { kanji: "無限の命が宿る呪われた器", kana: "むげんのいのちがやどるのろわれたうつわ" },
+      { kanji: "全ての始まりを知る者の嘆き", kana: "すべてのはじまりをしるもののなげき" },
+      { kanji: "神々の戦争が生んだ傷跡", kana: "かみがみのせんそうがうんだきずあと" },
+      { kanji: "宇宙が誕生した瞬間の闇", kana: "うちゅうがたんじょうしたしゅんかんのやみ" },
+      { kanji: "全ての光を飲み込む深淵", kana: "すべてのひかりをのみこむしんえん" },
+      { kanji: "永遠の時を生きた孤独な神", kana: "えいえんのときをいきたこどくなかみ" },
+      { kanji: "星が産声を上げる前の沈黙", kana: "ほしがうぶごえをあげるまえのちんもく" },
+      { kanji: "世界の果てに立つ最後の勇者", kana: "せかいのはてにたつさいごのゆうしゃ" },
+      { kanji: "全宇宙を震わせる滅びの言葉", kana: "ぜんうちゅうをふるわせるほろびのことば" },
+      { kanji: "深淵の神が目覚める時", kana: "しんえんのかみがめざめるとき" },
+      { kanji: "失われた時代の英雄の伝説", kana: "うしなわれたじだいのえいゆうのでんせつ" },
+      { kanji: "宇宙の終焉を告げる使者", kana: "うちゅうのしゅうえんをつげるししゃ" },
+      { kanji: "億千万の魂が眠る深淵の海", kana: "おくせんまんのたましいがねむるしんえんのうみ" },
+    ];
+    const W8 = [
+      { kanji: "絶対なる破滅の支配者", kana: "ぜったいなるはめつのしはいしゃ" },
+      { kanji: "宇宙の法則を書き換える者", kana: "うちゅうのほうそくをかきかえるもの" },
+      { kanji: "全ての命を喰らう虚無の化身", kana: "すべてのいのちをくらうきょむのけしん" },
+      { kanji: "千年の業火が生んだ究極の悪", kana: "せんねんのごうかがうんだきゅうきょくのあく" },
+      { kanji: "時の始まりから存在する滅びの神", kana: "ときのはじまりからそんざいするほろびのかみ" },
+      { kanji: "星々を砕き宇宙を統べる暗黒神", kana: "ほしぼしをくだきうちゅうをすべるあんこくしん" },
+      { kanji: "魂の絶叫が宿る終末の魔剣", kana: "たましいのぜっきょうがやどるしゅうまつのまけん" },
+      { kanji: "全知全能の破壊神が下す最後の審判", kana: "ぜんちぜんのうのはかいしんがくだすさいごのしんぱん" },
+      { kanji: "世界の果てで輝く滅亡の星", kana: "せかいのはてできらめくめつぼうのほし" },
+      { kanji: "永遠に消えることのない絶望の炎", kana: "えいえんにきえることのないぜつぼうのほのお" },
+      { kanji: "六千年の怨念が凝縮した滅びの魔王", kana: "ろくせんねんのおんねんがぎょうしゅくしたほろびのまおう" },
+      { kanji: "死と絶望が生み出した終焉の化身", kana: "しとぜつぼうがうみだしたしゅうえんのけしん" },
+      { kanji: "全宇宙の命運を握る暗黒の意志", kana: "ぜんうちゅうのめいうんをにぎるあんこくのいし" },
+      { kanji: "神話の時代から続く呪いの系譜", kana: "しんわのじだいからつづくのろいのけいふ" },
+      { kanji: "虚無より産まれし絶対なる破壊者", kana: "きょむよりうまれしぜったいなるはかいしゃ" },
+      { kanji: "宇宙が誕生する前から存在する神", kana: "うちゅうがたんじょうするまえからそんざいするかみ" },
+      { kanji: "全ての時間軸を支配する邪悪の化身", kana: "すべてのじかんじくをしはいするじゃあくのけしん" },
+      { kanji: "滅びの連鎖が生んだ最終の魔王", kana: "ほろびのれんさがうんださいしゅうのまおう" },
+      { kanji: "星の海を渡る破壊の嵐", kana: "ほしのうみをわたるはかいのあらし" },
+      { kanji: "永劫の闇に君臨する邪神", kana: "えいごうのやみにくんりんするじゃしん" },
+      { kanji: "全ての光を消し去る絶対の闇", kana: "すべてのひかりをけしさるぜったいのやみ" },
+      { kanji: "宇宙の果てに立つ絶望の化身", kana: "うちゅうのはてにたつぜつぼうのけしん" },
+      { kanji: "無限の怨念が形となった魔王", kana: "むげんのおんねんがかたちとなったまおう" },
+      { kanji: "時空の彼方から来たりし終末の神", kana: "じくうのかなたからきたりしゅうまつのかみ" },
+      { kanji: "全ての創造と破壊を司る唯一神", kana: "すべてのそうぞうとはかいをつかさどるゆいいつしん" },
+      { kanji: "億年の孤独が生んだ最後の悪意", kana: "おくねんのこどくがうんださいごのあくい" },
+      { kanji: "宇宙を滅ぼすために生まれた存在", kana: "うちゅうをほろぼすためにうまれたそんざい" },
+      { kanji: "全ての神話が恐れる最終の魔王", kana: "すべてのしんわがおそれるさいしゅうのまおう" },
+      { kanji: "深淵の果てに眠る全知の悪神", kana: "しんえんのはてにねむるぜんちのあくしん" },
+      { kanji: "万物を無に帰す絶対破壊の権化", kana: "ばんぶつをむにきすぜったいはかいのごんげ" },
+      { kanji: "この宇宙の全ての命の終わりを告げる者", kana: "このうちゅうのすべてのいのちのおわりをつげるもの" },
+      { kanji: "全ての記憶と存在を消し去る漆黒の意志", kana: "すべてのきおくとそんざいをけしさるしっこくのいし" },
+    ];
+
+    const STAGES = [
+      { name: "ゾンビ", spriteKey: "zombie", maxHp: 40, wordPool: W1, count: 6, timerSec: 12.0, timerDmg: 8, diffLabel: "Lv.1", diffColor: "#4CAF82" },
+      { name: "ゴブリン将軍", spriteKey: "goblin", maxHp: 60, wordPool: W2, count: 7, timerSec: 11.5, timerDmg: 10, diffLabel: "Lv.2", diffColor: "#5B9BD5" },
+      { name: "オーク戦士", spriteKey: "orc", maxHp: 80, wordPool: W3, count: 8, timerSec: 11.0, timerDmg: 12, diffLabel: "Lv.3", diffColor: "#8A7FC7" },
+      { name: "闇の騎士", spriteKey: "darkknight", maxHp: 100, wordPool: W4, count: 8, timerSec: 10.5, timerDmg: 14, diffLabel: "Lv.4", diffColor: "#C07840" },
+      { name: "邪竜", spriteKey: "dragon", maxHp: 120, wordPool: W5, count: 9, timerSec: 10.0, timerDmg: 16, diffLabel: "Lv.5", diffColor: "#C84B4B" },
+      { name: "堕天使", spriteKey: "fallenangel", maxHp: 140, wordPool: W6, count: 9, timerSec: 9.5, timerDmg: 18, diffLabel: "Lv.6", diffColor: "#A030A0" },
+      { name: "邪神", spriteKey: "evilgod", maxHp: 170, wordPool: W7, count: 10, timerSec: 9.0, timerDmg: 20, diffLabel: "Lv.7", diffColor: "#303090" },
+      { name: "魔王ダークロス", spriteKey: "demonlord", maxHp: 200, wordPool: W8, count: 10, timerSec: 8.0, timerDmg: 25, diffLabel: "FINAL", diffColor: "#8B0000" },
+    ];
+
+    // ===== レベル・経験値システム =====
+    // Lv1基礎HP=120, レベルごとに+15HP
+    const BASE_HP = 120;
+    const HP_PER_LV = 15;
+    // レベルアップに必要な累計EXP: Lv1→2=100, Lv2→3=150, ... (×1.4倍ずつ)
+    function expToNext(lv) { return Math.floor(100 * Math.pow(1.4, lv - 1)); }
+    function calcMaxHp(lv) { return BASE_HP + (lv - 1) * HP_PER_LV; }
+    // レベルによる固定攻撃ダメージ: Lv1=5, レベルごとに+1
+    function calcAttackDmg(lv) { return 4 + lv; }
+
+    // ストレージキー
+    const SAVE_KEY = "typing_rpg_hero";
+
+    let hero = { lv: 1, exp: 0 }; // 永続データ
+
+    // window.storage (アーティファクト環境) があればそちらを優先、
+    // なければ localStorage にフォールバックして単体HTMLでも保存できるようにする
+    async function loadHero() {
+      try {
+        if (window.storage && typeof window.storage.get === "function") {
+          const r = await window.storage.get(SAVE_KEY);
+          if (r && r.value) {
+            const d = JSON.parse(r.value);
+            hero = { lv: d.lv || 1, exp: d.exp || 0 };
+          }
+        } else {
+          const raw = localStorage.getItem(SAVE_KEY);
+          if (raw) {
+            const d = JSON.parse(raw);
+            hero = { lv: d.lv || 1, exp: d.exp || 0 };
+          }
+        }
+      } catch (e) { hero = { lv: 1, exp: 0 }; }
+      renderHeroStatus();
+    }
+    async function saveHero() {
+      try {
+        if (window.storage && typeof window.storage.set === "function") {
+          await window.storage.set(SAVE_KEY, JSON.stringify(hero));
+        } else {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(hero));
+        }
+      } catch (e) {
+        // window.storageが失敗した場合もlocalStorageに保存を試みる
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(hero)); } catch (e2) { }
       }
     }
-  } catch(e){ hero={lv:1,exp:0}; }
-  renderHeroStatus();
-}
-async function saveHero(){
-  try {
-    if(window.storage && typeof window.storage.set==="function"){
-      await window.storage.set(SAVE_KEY, JSON.stringify(hero));
-    } else {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(hero));
+    async function resetHeroData() {
+      if (!confirm("勇者データを初期化しますか？（Lv.1に戻ります）")) return;
+      hero = { lv: 1, exp: 0 };
+      await saveHero();
+      renderHeroStatus();
+      // HPも初期値に戻す
+      state.playerHp = calcMaxHp(1);
+      renderHp();
     }
-  } catch(e){
-    // window.storageが失敗した場合もlocalStorageに保存を試みる
-    try{ localStorage.setItem(SAVE_KEY, JSON.stringify(hero)); }catch(e2){}
-  }
-}
-async function resetHeroData(){
-  if(!confirm("勇者データを初期化しますか？（Lv.1に戻ります）")) return;
-  hero={lv:1,exp:0};
-  await saveHero();
-  renderHeroStatus();
-  // HPも初期値に戻す
-  state.playerHp = calcMaxHp(1);
-  renderHp();
-}
 
-function addExp(amount){
-  hero.exp += amount;
-  let leveled = false;
-  while(hero.exp >= expToNext(hero.lv)){
-    hero.exp -= expToNext(hero.lv);
-    hero.lv++;
-    leveled = true;
-  }
-  if(leveled){
-    // レベルアップ時はHPを全回復
-    state.playerHp = calcMaxHp(hero.lv);
-    tone(523,"triangle",0.1,0.3);setTimeout(()=>tone(659,"triangle",0.1,0.3),100);
-    setTimeout(()=>tone(784,"triangle",0.15,0.35),200);setTimeout(()=>tone(1047,"triangle",0.2,0.4),320);
-    setMsg(`⭐ LEVEL UP! Lv.${hero.lv} 最大HP +${HP_PER_LV}！`,"good");
-    const hs=document.getElementById("hero-status");
-    hs.classList.remove("levelup-flash");void hs.offsetWidth;hs.classList.add("levelup-flash");
-  }
-  saveHero();
-  renderHeroStatus();
-}
-
-function renderHeroStatus(){
-  const lv=hero.lv, exp=hero.exp, need=expToNext(lv), maxhp=calcMaxHp(lv);
-  document.getElementById("hero-lv").textContent=`Lv.${lv}`;
-  document.getElementById("exp-label-right").textContent=`${exp} / ${need}`;
-  document.getElementById("exp-bar").style.width=(exp/need*100)+"%";
-  document.getElementById("hero-maxhp-label").textContent=maxhp;
-  document.getElementById("hero-atk-label").textContent=calcAttackDmg(lv);
-}
-
-const COMBO_HEAL=5,COMBO_REQ=3;
-let state={},romanBuf="",kanaPos=0;
-let timerRaf=null, timerStart=0, timerElapsed=0;
-const $=id=>document.getElementById(id);
-const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
-const pick=(pool,n)=>shuffle(pool).slice(0,Math.min(n,pool.length));
-
-function startTimer(){
-  stopTimer();
-  timerStart=performance.now();
-  timerElapsed=0;
-  tickTimer();
-}
-function stopTimer(){
-  if(timerRaf){cancelAnimationFrame(timerRaf);timerRaf=null;}
-}
-function tickTimer(){
-  if(state.done){stopTimer();return;}
-  const s=STAGES[state.stage];
-  const now=performance.now();
-  timerElapsed=(now-timerStart)/1000;
-  const remaining=Math.max(0,s.timerSec-timerElapsed);
-  const pct=(remaining/s.timerSec)*100;
-  const bar=$("timer-bar");
-  bar.style.width=pct+"%";
-  bar.className="timer-bar-fill "+(pct>50?"safe":pct>20?"warn":"danger");
-  $("timer-sec").textContent=remaining.toFixed(1)+"秒";
-  if(timerElapsed>=s.timerSec){
-    // 敵の攻撃！
-    onTimerDamage();
-    // タイマーリセット
-    timerStart=performance.now();
-    timerElapsed=0;
-  }
-  timerRaf=requestAnimationFrame(tickTimer);
-}
-function onTimerDamage(){
-  const s=STAGES[state.stage];
-  state.playerHp-=s.timerDmg;
-  state.combo=0;$("combo-msg").textContent="";
-  animSprite("player-sprite");sndMiss();
-  $("word-display-box").style.outline="2px solid #E24B4A";
-  setTimeout(()=>$("word-display-box").style.outline="",400);
-  setMsg(`⚡ 敵の攻撃！ -${s.timerDmg} HP`,"bad");
-  renderHp();
-  if(state.playerHp<=0){
-    state.done=true;stopTimer();sndGameover();
-    showOverlay("GAME OVER",`${STAGES[state.stage].name}に敗れた…`,"► RETRY");
-  }
-}
-
-function initStage(idx){
-  const s=STAGES[idx];
-  const maxHp=calcMaxHp(hero.lv);
-  state={stage:idx,playerHp:state.playerHp??maxHp,enemyHp:s.maxHp,enemyMaxHp:s.maxHp,
-    words:shuffle(pick(s.wordPool,s.count)),wordIdx:0,combo:0,done:false};
-  // playerHpが現在のmaxHpを超えないようにキャップ
-  state.playerHp=Math.min(state.playerHp,maxHp);
-  const db=`<span class="diff-badge" style="background:${s.diffColor}22;color:${s.diffColor};border:0.5px solid ${s.diffColor}66">${s.diffLabel}</span>`;
-  $("stage-label").innerHTML=`ステージ ${idx+1} / ${STAGES.length} ${db}`;
-  $("enemy-name").textContent=s.name;
-  $("enemy-sprite").innerHTML=spriteHTML(s.spriteKey);
-  $("player-sprite").innerHTML=spriteHTML("hero");
-  renderHp();nextWord();setMsg("","");$("overlay").style.display="none";
-  startTimer();
-}
-function renderHp(){
-  const maxHp=calcMaxHp(hero.lv);
-  const ph=Math.max(0,state.playerHp),eh=Math.max(0,state.enemyHp);
-  $("player-hp-fill").style.width=(ph/maxHp*100)+"%";
-  $("enemy-hp-fill").style.width=(eh/state.enemyMaxHp*100)+"%";
-  $("player-hp-label").textContent=ph+" / "+maxHp;
-  $("enemy-hp-label").textContent=eh+" / "+state.enemyMaxHp;
-}
-function nextWord(){
-  if(state.wordIdx>=state.words.length){state.words=shuffle(pick(STAGES[state.stage].wordPool,STAGES[state.stage].count));state.wordIdx=0;}
-  const w=state.words[state.wordIdx++];
-  state.currentWord=w;romanBuf="";kanaPos=0;
-  $("word-kanji").textContent=w.kanji;
-  $("word-kana-small").textContent=w.kana;
-  renderDisplay();
-}
-function renderDisplay(){
-  const kana=state.currentWord.kana;
-  let kh="";
-  for(let i=0;i<kana.length;i++){
-    if(i<kanaPos) kh+=`<span class="kana-done">${kana[i]}</span>`;
-    else if(i===kanaPos) kh+=`<span class="kana-cur">${kana[i]}</span>`;
-    else kh+=`<span class="kana-pending">${kana[i]}</span>`;
-  }
-  $("kana-display").innerHTML=kh||"—";
-  const done=kanaToRoman(kana, kanaPos);
-  const pending=kanaToRoman(kana.slice(kanaPos));
-  let rh="";
-  for(let c of done) rh+=`<span class="seg-done">${c}</span>`;
-  for(let c of romanBuf) rh+=`<span class="seg-done">${c}</span>`;
-  const rest=pending.slice(romanBuf.length);
-  if(rest.length>0){
-    rh+=`<span class="seg-cur">${rest[0]}</span>`;
-    for(let i=1;i<rest.length;i++) rh+=`<span class="seg-pending">${rest[i]}</span>`;
-  }
-  $("roman-display").innerHTML=rh||"—";
-}
-function setMsg(t,type){const el=$("msg-bar");el.textContent=t;el.className="msg-bar"+(type?" "+type:"");}
-function animSprite(id){const el=$(id);el.style.transform="scale(1.3)";setTimeout(()=>el.style.transform="",150);}
-function showOverlay(t,s,b){$("overlay-title").textContent=t;$("overlay-sub").textContent=s;$("overlay-btn").textContent=b;$("overlay").style.display="flex";}
-
-function onMiss(){
-  $("word-display-box").style.outline="2px solid #E24B4A";
-  setTimeout(()=>$("word-display-box").style.outline="",300);
-  animSprite("player-sprite");sndMiss();
-  setMsg(`ミス！`,"bad");
-  renderDisplay();
-}
-function onComplete(){
-  const dmg=calcAttackDmg(hero.lv);
-  state.enemyHp-=dmg;state.combo++;
-  animSprite("enemy-sprite");romanBuf="";kanaPos=0;
-  // ワード完成でタイマーリセット
-  timerStart=performance.now();timerElapsed=0;
-  const maxHp=calcMaxHp(hero.lv);
-  if(state.combo>=COMBO_REQ){
-    state.playerHp=Math.min(maxHp,state.playerHp+COMBO_HEAL);
-    $("combo-msg").textContent=`${state.combo}コンボ！ HP +${COMBO_HEAL}`;
-    setMsg(`撃破！ -${dmg} / コンボ回復！`,"good");sndCombo();
-  } else {
-    $("combo-msg").textContent=state.combo>1?`${state.combo}コンボ！`:"";
-    setMsg(`撃破！ -${dmg} ダメージ`,"good");sndAttack();
-  }
-  renderHp();
-  if(state.enemyHp<=0){
-    state.done=true;stopTimer();
-    // 敵撃破時のみ経験値獲得（ステージが深いほど多め）
-    const expGain = 50 + state.stage * 30;
-    addExp(expGain);
-    if(state.stage+1>=STAGES.length){
-      sndClear();stopBGM();bgmPlaying=false;$("bgm-btn").textContent="🔇";
-      showOverlay("★ CLEAR! ★",`魔王ダークロスを打ち倒し\n世界に真の平和が訪れた！\n+${expGain}EXP 獲得！`,"► PLAY AGAIN");
-    } else {
-      sndDefeat();
-      showOverlay(`STAGE ${state.stage+1} CLEAR!`,`次の強敵： ${STAGES[state.stage+1].name}\n+${expGain}EXP 獲得！`,"► NEXT STAGE");
+    function addExp(amount) {
+      hero.exp += amount;
+      let leveled = false;
+      while (hero.exp >= expToNext(hero.lv)) {
+        hero.exp -= expToNext(hero.lv);
+        hero.lv++;
+        leveled = true;
+      }
+      if (leveled) {
+        // レベルアップ時はHPを全回復
+        state.playerHp = calcMaxHp(hero.lv);
+        tone(523, "triangle", 0.1, 0.3); setTimeout(() => tone(659, "triangle", 0.1, 0.3), 100);
+        setTimeout(() => tone(784, "triangle", 0.15, 0.35), 200); setTimeout(() => tone(1047, "triangle", 0.2, 0.4), 320);
+        setMsg(`⭐ LEVEL UP! Lv.${hero.lv} 最大HP +${HP_PER_LV}！`, "good");
+        const hs = document.getElementById("hero-status");
+        hs.classList.remove("levelup-flash"); void hs.offsetWidth; hs.classList.add("levelup-flash");
+      }
+      saveHero();
+      renderHeroStatus();
     }
-    return;
-  }
-  nextWord();
-}
 
-document.addEventListener("keydown",e=>{
-  if($("overlay").style.display!=="none"){if(e.key==="Enter")$("overlay-btn").click();return;}
-  if(state.done) return;
-  if(e.key.length!==1||!/[a-z']/i.test(e.key)) return;
-  e.preventDefault();resumeAC();
-  const ch=e.key.toLowerCase();
-  const kana=state.currentWord.kana;
-  const newBuf=romanBuf+ch;
-  const restKana=kana.slice(kanaPos);
+    function renderHeroStatus() {
+      const lv = hero.lv, exp = hero.exp, need = expToNext(lv), maxhp = calcMaxHp(lv);
+      document.getElementById("hero-lv").textContent = `Lv.${lv}`;
+      document.getElementById("exp-label-right").textContent = `${exp} / ${need}`;
+      document.getElementById("exp-bar").style.width = (exp / need * 100) + "%";
+      document.getElementById("hero-maxhp-label").textContent = maxhp;
+      document.getElementById("hero-atk-label").textContent = calcAttackDmg(lv);
+    }
 
-  // newBuf が restKana に対して有効な入力かどうかを先にチェック。
-  // 無効なら romanBuf は変更せず、直前まで合っていた部分から再開できるようにする。
-  if(!isValidRomanPrefixForKana(newBuf, restKana)){
-    onMiss();
-    return;
-  }
+    // コンボゲージ設定（3段階）
+    // COMBO_LEVELS[i] = { req: 必要連続成功数, heal: 回復量, label: 表示テキスト, color: セグカラークラス }
+    const COMBO_LEVELS = [
+      { req: 3, heal: 5, label: "COMBO Lv.1 ＋５HP", colorClass: "lit-1" },
+      { req: 6, heal: 15, label: "COMBO Lv.2 ＋15HP", colorClass: "lit-2" },
+      { req: 10, heal: 35, label: "COMBO Lv.3 ＋35HP！", colorClass: "lit-3" },
+    ];
+    // ミスなし連続ワード数（タイプミス or 敵ダメージでリセット）
+    // 注意: state.combo とは別に state.pureCombo で管理
 
-  const result=tryConvert(newBuf, restKana);
+    let state = {}, romanBuf = "", kanaPos = 0;
+    let timerRaf = null, timerStart = 0, timerElapsed = 0;
+    const $ = id => document.getElementById(id);
+    const shuffle = a => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[b[i], b[j]] = [b[j], b[i]]; } return b; };
+    const pick = (pool, n) => shuffle(pool).slice(0, Math.min(n, pool.length));
 
-  if(result===false){ onMiss(); return; }
-  if(result===null){
-    romanBuf=newBuf; renderDisplay(); return;
-  }
-  // 確定
-  if(!restKana.startsWith(result.kana)){ onMiss(); return; }
-  kanaPos+=result.kana.length;
-  romanBuf=result.remaining;
-  // remainingをさらに変換（っの直後に次の文字まで一気に打てた場合など）
-  while(romanBuf.length>0&&kanaPos<kana.length){
-    const r2=tryConvert(romanBuf, kana.slice(kanaPos));
-    if(!r2||r2===false||!kana.slice(kanaPos).startsWith(r2.kana)) break;
-    kanaPos+=r2.kana.length;romanBuf=r2.remaining;
-  }
-  renderDisplay();
-  if(kanaPos>=kana.length) setTimeout(()=>onComplete(),0);
-});
+    function startTimer() {
+      stopTimer();
+      timerStart = performance.now();
+      timerElapsed = 0;
+      tickTimer();
+    }
+    function stopTimer() {
+      if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
+    }
+    function tickTimer() {
+      if (state.done) { stopTimer(); return; }
+      const s = STAGES[state.stage];
+      const now = performance.now();
+      timerElapsed = (now - timerStart) / 1000;
+      const remaining = Math.max(0, s.timerSec - timerElapsed);
+      const pct = (remaining / s.timerSec) * 100;
+      const bar = $("timer-bar");
+      bar.style.width = pct + "%";
+      bar.className = "timer-bar-fill " + (pct > 50 ? "safe" : pct > 20 ? "warn" : "danger");
+      $("timer-sec").textContent = remaining.toFixed(1) + "秒";
+      if (timerElapsed >= s.timerSec) {
+        // 敵の攻撃！
+        onTimerDamage();
+        // タイマーリセット
+        timerStart = performance.now();
+        timerElapsed = 0;
+      }
+      timerRaf = requestAnimationFrame(tickTimer);
+    }
+    function onTimerDamage() {
+      const s = STAGES[state.stage];
+      state.playerHp -= s.timerDmg;
+      animSprite("player-sprite"); sndMiss();
+      $("word-display-box").style.outline = "2px solid #E24B4A";
+      setTimeout(() => $("word-display-box").style.outline = "", 400);
+      setMsg(`⚡ 敵の攻撃！ -${s.timerDmg} HP`, "bad");
+      // 被ダメでコンボリセット
+      resetCombo();
+      renderHp();
+      if (state.playerHp <= 0) {
+        state.done = true; stopTimer(); sndGameover();
+        showOverlay("GAME OVER", `${STAGES[state.stage].name}に敗れた…`, "► RETRY");
+      }
+    }
 
-$("overlay-btn").addEventListener("click",function(){
-  resumeAC();
-  if(!bgmPlaying){bgmPlaying=true;$("bgm-btn").textContent="🔊";playBGM();}
-  if(this.textContent==="► NEXT STAGE") initStage(state.stage+1);
-  else{
-    state.playerHp = calcMaxHp(hero.lv);
-    initStage(0);
-  }
-});
-$("bgm-btn").addEventListener("click",()=>{resumeAC();toggleBGM();});
+    function initStage(idx) {
+      const s = STAGES[idx];
+      const maxHp = calcMaxHp(hero.lv);
+      state = {
+        stage: idx, playerHp: state.playerHp ?? maxHp, enemyHp: s.maxHp, enemyMaxHp: s.maxHp,
+        words: shuffle(pick(s.wordPool, s.count)), wordIdx: 0, pureCombo: 0, done: false
+      };
+      state.playerHp = Math.min(state.playerHp, maxHp);
+      const db = `<span class="diff-badge" style="background:${s.diffColor}22;color:${s.diffColor};border:0.5px solid ${s.diffColor}66">${s.diffLabel}</span>`;
+      $("stage-label").innerHTML = `ステージ ${idx + 1} / ${STAGES.length} ${db}`;
+      $("enemy-name").textContent = s.name;
+      $("enemy-sprite").innerHTML = spriteHTML(s.spriteKey);
+      $("player-sprite").innerHTML = spriteHTML("hero");
+      buildComboTrack();
+      renderComboGauge();
+      renderHp(); nextWord(); setMsg("", ""); $("overlay").style.display = "none";
+      startTimer();
+    }
+    function renderHp() {
+      const maxHp = calcMaxHp(hero.lv);
+      const ph = Math.max(0, state.playerHp), eh = Math.max(0, state.enemyHp);
+      $("player-hp-fill").style.width = (ph / maxHp * 100) + "%";
+      $("enemy-hp-fill").style.width = (eh / state.enemyMaxHp * 100) + "%";
+      $("player-hp-label").textContent = ph + " / " + maxHp;
+      $("enemy-hp-label").textContent = eh + " / " + state.enemyMaxHp;
+    }
+    function nextWord() {
+      if (state.wordIdx >= state.words.length) { state.words = shuffle(pick(STAGES[state.stage].wordPool, STAGES[state.stage].count)); state.wordIdx = 0; }
+      const w = state.words[state.wordIdx++];
+      state.currentWord = w; romanBuf = ""; kanaPos = 0;
+      $("word-kanji").textContent = w.kanji;
+      $("word-kana-small").textContent = w.kana;
+      renderDisplay();
+    }
+    function renderDisplay() {
+      const kana = state.currentWord.kana;
+      let kh = "";
+      for (let i = 0; i < kana.length; i++) {
+        if (i < kanaPos) kh += `<span class="kana-done">${kana[i]}</span>`;
+        else if (i === kanaPos) kh += `<span class="kana-cur">${kana[i]}</span>`;
+        else kh += `<span class="kana-pending">${kana[i]}</span>`;
+      }
+      $("kana-display").innerHTML = kh || "—";
+      const done = kanaToRoman(kana, kanaPos);
+      const pending = kanaToRoman(kana.slice(kanaPos));
+      let rh = "";
+      for (let c of done) rh += `<span class="seg-done">${c}</span>`;
+      for (let c of romanBuf) rh += `<span class="seg-done">${c}</span>`;
+      const rest = pending.slice(romanBuf.length);
+      if (rest.length > 0) {
+        rh += `<span class="seg-cur">${rest[0]}</span>`;
+        for (let i = 1; i < rest.length; i++) rh += `<span class="seg-pending">${rest[i]}</span>`;
+      }
+      $("roman-display").innerHTML = rh || "—";
+    }
+    function buildComboTrack() {
+      // コンボトラックのセグを生成（最大10マス）
+      const track = $("combo-track");
+      track.innerHTML = "";
+      for (let i = 0; i < 10; i++) {
+        const seg = document.createElement("div");
+        seg.className = "combo-seg";
+        seg.id = `combo-seg-${i}`;
+        track.appendChild(seg);
+      }
+    }
+    function renderComboGauge() {
+      const pc = state.pureCombo || 0;
+      $("combo-count").textContent = pc;
 
-// 起動時にセーブデータ読み込み
-loadHero();
-</script>
-</body></html>
+      // 各マス（0〜9）にそのマスが属するレベル帯の色を付ける
+      // マス0〜2: Lv.1(req=3) → lit-1(黄)
+      // マス3〜5: Lv.2(req=6) → lit-2(オレンジ)
+      // マス6〜9: Lv.3(req=10) → lit-3(赤)
+      const segColors = [
+        "lit-1", "lit-1", "lit-1",   // 0,1,2 → 3連続でLv.1
+        "lit-2", "lit-2", "lit-2",   // 3,4,5 → 6連続でLv.2
+        "lit-3", "lit-3", "lit-3", "lit-3", // 6,7,8,9 → 10連続でLv.3
+      ];
+
+      for (let i = 0; i < 10; i++) {
+        const seg = $(`combo-seg-${i}`);
+        if (!seg) continue;
+        seg.className = "combo-seg" + (i < pc ? " " + segColors[i] : "");
+      }
+
+      // 現在到達中のレベルラベルを表示
+      let curLv = -1;
+      for (let i = COMBO_LEVELS.length - 1; i >= 0; i--) {
+        if (pc >= COMBO_LEVELS[i].req) { curLv = i; break; }
+      }
+      $("combo-lv-badge").textContent = curLv >= 0 ? COMBO_LEVELS[curLv].label : "";
+    }
+    function resetCombo() {
+      state.pureCombo = 0;
+      $("combo-msg").textContent = "";
+      renderComboGauge();
+    }
+
+    function setMsg(t, type) { const el = $("msg-bar"); el.textContent = t; el.className = "msg-bar" + (type ? " " + type : ""); }
+    function animSprite(id) { const el = $(id); el.style.transform = "scale(1.3)"; setTimeout(() => el.style.transform = "", 150); }
+    function showOverlay(t, s, b) { $("overlay-title").textContent = t; $("overlay-sub").textContent = s; $("overlay-btn").textContent = b; $("overlay").style.display = "flex"; }
+
+    function onMiss() {
+      $("word-display-box").style.outline = "2px solid #E24B4A";
+      setTimeout(() => $("word-display-box").style.outline = "", 300);
+      animSprite("player-sprite"); sndMiss();
+      setMsg(`ミス！`, "bad");
+      // ミスでコンボリセット
+      resetCombo();
+      renderDisplay();
+    }
+    function onComplete() {
+      const dmg = calcAttackDmg(hero.lv);
+      state.enemyHp -= dmg;
+      animSprite("enemy-sprite"); romanBuf = ""; kanaPos = 0;
+      // ワード完成でタイマーリセット
+      timerStart = performance.now(); timerElapsed = 0;
+
+      // pureCombo: ミスなし・被ダメなし連続ワード数
+      state.pureCombo = (state.pureCombo || 0) + 1;
+      const pc = state.pureCombo;
+      const maxHp = calcMaxHp(hero.lv);
+
+      // 3段階コンボ回復判定（req達成時に回復、Lv.3達成後はリセットして再挑戦）
+      let healAmount = 0;
+      let healMsg = "";
+      for (let i = COMBO_LEVELS.length - 1; i >= 0; i--) {
+        if (pc === COMBO_LEVELS[i].req) {
+          healAmount = COMBO_LEVELS[i].heal;
+          healMsg = COMBO_LEVELS[i].label;
+          // Lv.3達成でゲージリセット
+          if (i === COMBO_LEVELS.length - 1) {
+            setTimeout(() => { state.pureCombo = 0; renderComboGauge(); }, 600);
+          }
+          break;
+        }
+      }
+      if (healAmount > 0) {
+        state.playerHp = Math.min(maxHp, state.playerHp + healAmount);
+        setMsg(`撃破！ -${dmg} / ${healMsg}`, "good");
+        sndCombo();
+        // ゲージセグを点滅させる
+        for (let i = 0; i < 10; i++) {
+          const seg = $(`combo-seg-${i}`);
+          if (seg && seg.classList.contains("lit-1") || seg && seg.classList.contains("lit-2") || seg && seg.classList.contains("lit-3")) {
+            seg.classList.add("pulse");
+            setTimeout(() => seg && seg.classList.remove("pulse"), 300);
+          }
+        }
+      } else {
+        setMsg(`撃破！ -${dmg} ダメージ`, "good");
+        sndAttack();
+      }
+      renderComboGauge();
+      renderHp();
+
+      if (state.enemyHp <= 0) {
+        state.done = true; stopTimer();
+        const expGain = 50 + state.stage * 30;
+        addExp(expGain);
+        if (state.stage + 1 >= STAGES.length) {
+          sndClear(); stopBGM(); bgmPlaying = false; $("bgm-btn").textContent = "♪OFF";
+          showOverlay("★ CLEAR! ★", `魔王ダークロスを打ち倒し\n世界に真の平和が訪れた！\n+${expGain}EXP 獲得！`, "► PLAY AGAIN");
+        } else {
+          sndDefeat();
+          showOverlay(`STAGE ${state.stage + 1} CLEAR!`, `次の強敵： ${STAGES[state.stage + 1].name}\n+${expGain}EXP 獲得！`, "► NEXT STAGE");
+        }
+        return;
+      }
+      nextWord();
+    }
+
+    document.addEventListener("keydown", e => {
+      if ($("overlay").style.display !== "none") { if (e.key === "Enter") $("overlay-btn").click(); return; }
+      if (state.done) return;
+      if (e.key.length !== 1 || !/[a-z']/i.test(e.key)) return;
+      e.preventDefault(); resumeAC();
+      const ch = e.key.toLowerCase();
+      const kana = state.currentWord.kana;
+      const newBuf = romanBuf + ch;
+      const restKana = kana.slice(kanaPos);
+
+      // newBuf が restKana に対して有効な入力かどうかを先にチェック。
+      // 無効なら romanBuf は変更せず、直前まで合っていた部分から再開できるようにする。
+      if (!isValidRomanPrefixForKana(newBuf, restKana)) {
+        onMiss();
+        return;
+      }
+
+      const result = tryConvert(newBuf, restKana);
+
+      if (result === false) { onMiss(); return; }
+      if (result === null) {
+        romanBuf = newBuf; renderDisplay(); return;
+      }
+      // 確定
+      if (!restKana.startsWith(result.kana)) { onMiss(); return; }
+      kanaPos += result.kana.length;
+      romanBuf = result.remaining;
+      // remainingをさらに変換（っの直後に次の文字まで一気に打てた場合など）
+      while (romanBuf.length > 0 && kanaPos < kana.length) {
+        const r2 = tryConvert(romanBuf, kana.slice(kanaPos));
+        if (!r2 || r2 === false || !kana.slice(kanaPos).startsWith(r2.kana)) break;
+        kanaPos += r2.kana.length; romanBuf = r2.remaining;
+      }
+      renderDisplay();
+      if (kanaPos >= kana.length) setTimeout(() => onComplete(), 0);
+    });
+
+    $("overlay-btn").addEventListener("click", function () {
+      resumeAC();
+      if (!bgmPlaying) { bgmPlaying = true; $("bgm-btn").textContent = "♪ON"; playBGM(); }
+      if (this.textContent === "► NEXT STAGE") initStage(state.stage + 1);
+      else {
+        state.playerHp = calcMaxHp(hero.lv);
+        initStage(0);
+      }
+    });
+    $("bgm-btn").addEventListener("click", () => { resumeAC(); toggleBGM(); });
+
+    // 起動時にセーブデータ読み込み
+    loadHero();
+  </script>
+</body>
+
+</html>
